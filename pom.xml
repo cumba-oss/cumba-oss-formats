@@ -1031,17 +1031,35 @@
                             <skipPublishing>${central.skipPublishing}</skipPublishing>
                             <waitUntil>validated</waitUntil>
                             <!--
-                                ⚠ THIS is how a module is kept out of Central, not
-                                central.skipPublishing. That property is a GLOBAL
-                                "build the bundle but do not upload" switch (used by
-                                the workflow's dry run); setting it on one module does
-                                NOT reliably exclude that module.
+                                ⚠ THIS is how a module is kept out of Central,
+                                not the central.skipPublishing property.
 
-                                Measured: net.cumba:coverage was absent from the 0.0.2
-                                bundle but PUBLISHED with 0.0.4 — public and immutable —
-                                while the only mechanism in place was the property.
-                                excludeArtifacts removes the component from the bundle
-                                by artifactId, which is what the plugin documents.
+                                excludeArtifacts is plugin CONFIGURATION and takes
+                                a bare artifactId, matched exactly. Verified against
+                                the plugin's bytecode (0.11.0, PublishMojo): the
+                                staging filter is
+                                excludeArtifacts.contains(artifact.getArtifactId()),
+                                evaluated FIRST, ahead of skipPublishing.
+
+                                The property was tried first and failed. Not because
+                                skipPublishing is global — the plugin does honour it
+                                per module — but because the release job passes
+                                -Dcentral.skipPublishing=false on the command line,
+                                and a CLI -D is a Maven USER property that outranks
+                                the project property in every module. The coverage
+                                module's own `true` was rewritten to `false` on the
+                                release path only; the dry run passes `true`, so the
+                                defect was invisible there. net.cumba:coverage:0.0.4
+                                is public and immutable as a result.
+
+                                Lesson: a per-module opt-out expressed as a property
+                                is only as strong as the command line. Plugin
+                                configuration is out of reach of -D; use it.
+
+                                Verified locally before the first tag: a deploy-central
+                                run with -DcentralBaseUrl=http://127.0.0.1:1 fails at
+                                upload but still writes target/central-publishing/
+                                central-bundle.zip — 54 files, zero coverage entries.
                             -->
                             <excludeArtifacts>
                                 <excludeArtifact>coverage</excludeArtifact>
