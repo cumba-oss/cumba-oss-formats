@@ -19,13 +19,6 @@
     -->
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <!--
-            Same intent as maven.deploy.skip, for the Central path:
-            central-publishing-maven-plugin REPLACES maven-deploy-plugin
-            rather than wrapping it, so it does not honour that flag.
-            Without this the aggregator publishes to Maven Central.
-        -->
-        <central.skipPublishing>true</central.skipPublishing>
     </properties>
     <name>Aggregate JaCoCo Coverage Report</name>
 

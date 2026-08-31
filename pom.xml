@@ -1030,6 +1030,22 @@
                             <autoPublish>false</autoPublish>
                             <skipPublishing>${central.skipPublishing}</skipPublishing>
                             <waitUntil>validated</waitUntil>
+                            <!--
+                                ⚠ THIS is how a module is kept out of Central, not
+                                central.skipPublishing. That property is a GLOBAL
+                                "build the bundle but do not upload" switch (used by
+                                the workflow's dry run); setting it on one module does
+                                NOT reliably exclude that module.
+
+                                Measured: net.cumba:coverage was absent from the 0.0.2
+                                bundle but PUBLISHED with 0.0.4 — public and immutable —
+                                while the only mechanism in place was the property.
+                                excludeArtifacts removes the component from the bundle
+                                by artifactId, which is what the plugin documents.
+                            -->
+                            <excludeArtifacts>
+                                <excludeArtifact>coverage</excludeArtifact>
+                            </excludeArtifacts>
                         </configuration>
                     </plugin>
                 </plugins>
