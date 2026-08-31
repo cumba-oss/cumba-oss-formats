@@ -1,0 +1,1461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+    <!-- ================================================================ -->
+    <!-- 1. Generic project-wide FP categories                            -->
+    <!--    Every instance of these patterns is structurally an FP in     -->
+    <!--    this codebase by project convention. Only categories with     -->
+    <!--    at least one finding in this module are listed.               -->
+    <!-- ================================================================ -->
+
+    <Match>
+        <!-- SPI parser constructors throw on file-format errors. -->
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+
+    <Match>
+        <!-- Codebase chose null sentinels for "not found" vs empty result
+             (style preference); changing to zero-length arrays would
+             destroy the documented signal. -->
+        <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
+    </Match>
+
+    <Match>
+        <!-- bdat / xpt classes are struct-shaped: populated reflectively
+             by org.thshsh.struct.Struct from binary format mappings.
+             Public fields and post-construction init are part of the contract. -->
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
+    </Match>
+
+    <!-- ================================================================ -->
+    <!-- 2. Targeted suppressions                                         -->
+    <!--    One <Match> per unique (class, method-or-field, bug pattern)  -->
+    <!--    tuple. Multiple findings sharing the same tuple collapse into -->
+    <!--    one Match (filter has no line-level scope).                   -->
+    <!-- ================================================================ -->
+
+    <Match>
+        <!-- ibmToIeee decodes IBM 360 floating point; sign-bit checks
+             are the whole point of the function. -->
+        <Class name="net.cumba.sasutils.xpt.ObservationIteratorXpt" />
+        <Method name="ibmToIeee" />
+        <Bug pattern="BIT_SIGNED_CHECK" />
+    </Match>
+
+    <Match>
+        <!-- SAS variable names are <=32 ASCII chars per SAS spec;
+             locale-insensitive folding is intentional. -->
+        <Class name="net.cumba.sasutils.Dataset" />
+        <Method name="getVariableIgnoreCase" />
+        <Bug pattern="DM_CONVERT_CASE" />
+    </Match>
+
+    <Match>
+        <!-- SAS variable names are ASCII per SAS spec; locale-insensitive
+             folding is intentional. regex-fallback: lambda synthetic name. -->
+        <Class name="net.cumba.sasutils.Dataset" />
+        <Method name="~lambda\$.*" />
+        <Bug pattern="DM_CONVERT_CASE" />
+    </Match>
+
+    <Match>
+        <!-- IANA / SAS encoding table names are ASCII; locale-insensitive
+             folding is intentional. regex-fallback: lambda synthetic name. -->
+        <Class name="net.cumba.sasutils.EncodingTableMap" />
+        <Method name="~lambda\$.*" />
+        <Bug pattern="DM_CONVERT_CASE" />
+    </Match>
+
+    <Match>
+        <!-- Dataset names written to the BDAT header are <=32 ASCII chars
+             per SAS spec; locale-insensitive folding is intentional. -->
+        <Class name="net.cumba.sasutils.bdat.WriterBdat" />
+        <Method name="writeFileHeader" />
+        <Bug pattern="DM_CONVERT_CASE" />
+    </Match>
+
+    <Match>
+        <!-- SeekableByteArrayInputStream's aliasing is documented contract;
+             defensive copy would double memory for large SAS pages. -->
+        <Class name="net.cumba.sasutils.bdat.SeekableByteArrayInputStream" />
+        <Method name="&lt;init&gt;" />
+        <Bug pattern="EI_EXPOSE_BUF2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.Dataset" />
+        <Field name="library" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.Dataset" />
+        <Field name="variableMap" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.Dataset" />
+        <Field name="variableMapIgnoreCase" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.Observation" />
+        <Field name="values" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnAttributesSubHeader" />
+        <Field name="columnAttributes" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnNamesSubHeader" />
+        <Field name="columnNames" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="header1" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="header2" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="header3" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="header4" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="pages" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="variables" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.LibraryBdat" />
+        <Field name="datasets" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat$DataBlockIterator" />
+        <Field name="currentObservation" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat2$DataBlockIterator" />
+        <Field name="currentObservation" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.Page" />
+        <Field name="subHeaderPointers" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeader" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeader" />
+        <Field name="pointer" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.VariableBdat" />
+        <Field name="formatAndLabel" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetXpt" />
+        <Field name="variables" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.LibraryXpt" />
+        <Field name="datasets" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.LibraryXpt" />
+        <Field name="header" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.Dataset" />
+        <Field name="library" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnAttributesSubHeader" />
+        <Field name="columnAttributes" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnNamesSubHeader" />
+        <Field name="columnNames" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="columnAttributesSubHeader" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="columnNamesSubHeader" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="columnSizeSubHeader" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="header1" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="header3" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="header4" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="variables" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.LibraryBdat" />
+        <Field name="datasets" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat$DataBlockIterator" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat$DataBlockIterator" />
+        <Field name="page" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat$DataSubHeaderIterator" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat$DataSubHeaderIterator" />
+        <Field name="page" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat2" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat2$DataBlockIterator" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat2$DataBlockIterator" />
+        <Field name="page" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat2$DataSubHeaderIterator" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat2$DataSubHeaderIterator" />
+        <Field name="page" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.Page" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.Page" />
+        <Field name="header" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.Page" />
+        <Field name="subHeaderPointers" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeader" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeader" />
+        <Field name="pointer" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.VariableBdat" />
+        <Field name="attributes" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.VariableBdat" />
+        <Field name="columnName" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.VariableBdat" />
+        <Field name="formatAndLabel" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bdat.WriterBdat" />
+        <Field name="out" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetXpt" />
+        <Field name="header" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetXpt" />
+        <Field name="variables" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.LibraryXpt" />
+        <Field name="datasets" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.LibraryXpt" />
+        <Field name="header" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.ObservationIteratorXpt" />
+        <Field name="member" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt$FormatXpt" />
+        <Field name="this$0" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.xpt.WriterXpt" />
+        <Field name="out" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- BCAT label keys are stored as IEEE doubles; equality compares
+             the exact bit pattern read off disk against the codelist key. -->
+        <Class name="net.cumba.sasutils.bcat.Sas7bcatReader" />
+        <Method name="parseValueLabels" />
+        <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
+    </Match>
+
+    <Match>
+        <!-- ObservationIteratorBdat$DataBlockIterator.next: the iterator
+             contract is consumed by an internal caller that pre-checks
+             hasNext(); throwing NoSuchElementException would never fire
+             in practice. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat$DataBlockIterator" />
+        <Method name="next" />
+        <Bug pattern="IT_NO_SUCH_ELEMENT" />
+    </Match>
+
+    <Match>
+        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
+        <Class name="net.cumba.sasutils.bcat.Sas7bcatReader" />
+        <Field name="valueLabelSets" />
+        <Bug pattern="MS_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <!-- bdat / xpt classes are struct-shaped: populated reflectively
+             by org.thshsh.struct.Struct from binary format mappings.
+             Public fields are part of the contract. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnAttributes" />
+        <Field name="variableTypeId" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnName" />
+        <Field name="index" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnName" />
+        <Field name="length" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnName" />
+        <Field name="sortOrder" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.ColumnName" />
+        <Field name="start" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.FormatAndLabelSubHeader" />
+        <Field name="formatIndex" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.FormatAndLabelSubHeader" />
+        <Field name="formatLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.FormatAndLabelSubHeader" />
+        <Field name="formatOffset" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.FormatAndLabelSubHeader" />
+        <Field name="labelIndex" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.FormatAndLabelSubHeader" />
+        <Field name="labelLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.FormatAndLabelSubHeader" />
+        <Field name="labelOffset" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header1" />
+        <Field name="align1" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header1" />
+        <Field name="align2" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header1" />
+        <Field name="littleEndian" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header2" />
+        <Field name="datasetName" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header2" />
+        <Field name="fileType" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header2" />
+        <Field name="platform" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header3" />
+        <Field name="createdTimestamp" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header3" />
+        <Field name="headerSize" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header3" />
+        <Field name="modifiedTimestamp" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header3" />
+        <Field name="pageSize" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header4" />
+        <Field name="osName" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header4" />
+        <Field name="osVendor" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header4" />
+        <Field name="osVersion" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header4" />
+        <Field name="sasRelease" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.Header4" />
+        <Field name="sasServer" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="columnLabelMaxLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="columnNameMaxLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="columnTextHeadersCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="compressionMethodLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="compressionMethodOffset" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="creatorProcLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="creatorProcOffset" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="creatorSoftwareLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="creatorSoftwareOffset" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="fullPageRowsCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown14" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown15" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown16" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown17" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown18" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown20" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown21" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown22" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown23" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown24" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown26" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown27" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.RowSizeSubHeader" />
+        <Field name="unknown28" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeaderPointer" />
+        <Field name="categoryId" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeaderPointer" />
+        <Field name="compressionTypeId" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeaderPointer" />
+        <Field name="signature" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.SubHeaderPointer" />
+        <Field name="subHeader" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.TextSubHeader" />
+        <Field name="length" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.TextSubHeader" />
+        <Field name="string" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.ColumnSizeSubHeader32" />
+        <Field name="numColumns" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.Header332" />
+        <Field name="pageCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="deletedRowCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="mixedPageRowCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="pageCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="pageSequence" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="pageSize" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="pagesWithSubHeadersCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="pagesWithSubHeadersCountDuplicate" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="rowCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="rowLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown1" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown10" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown11" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown12" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown13" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown2" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown3" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown4" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown5" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown7" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown8" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x32.RowSizeSubHeader32" />
+        <Field name="unknown9" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.ColumnSizeSubHeader64" />
+        <Field name="numColumns" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.Header364" />
+        <Field name="pageCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="columnCountP1" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="columnCountP2" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="deletedRowCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="lastPageSubHeadersCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="mixedPageRowCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="numLastPageSubHeadersPlusTwo" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="pageCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="pageSequence" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="pageSize" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="pagesWithSubHeadersCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="pagesWithSubHeadersCountDuplicate" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="rowCount" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="rowLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown0" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown1" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown10" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown11" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown12" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown13" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown2" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown3" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown4" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown5" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown6" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown7" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown8" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- bdat struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.bdat.x64.RowSizeSubHeader64" />
+        <Field name="unknown9" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="createdString" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="label" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="modifiedString" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="name" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="os" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="type" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="variableDescriptorSize" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.DatasetHeaderXpt" />
+        <Field name="version" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.LibraryHeaderXpt" />
+        <Field name="version" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="formatDecimals" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="formatJustifyId" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="formatLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="formatTypeString" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="informatDecimals" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="informatLength" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="informatTypeString" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="label" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="length" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="name" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="nameHash" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="number" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="position" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- xpt struct fields populated by org.thshsh.struct.Struct. -->
+        <Class name="net.cumba.sasutils.xpt.VariableXpt" />
+        <Field name="variableTypeId" />
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+    </Match>
+
+    <Match>
+        <!-- DatasetBdat.file: legacy public field kept for backward source
+             compatibility with the older sas-utils API; removing it would
+             be a binary-compat break with downstream consumers. -->
+        <Class name="net.cumba.sasutils.bdat.DatasetBdat" />
+        <Field name="file" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+
+    <Match>
+        <!-- ObservationIteratorBdat2.rowCount: legacy public field kept for
+             backward source compatibility with the older sas-utils API. -->
+        <Class name="net.cumba.sasutils.bdat.ObservationIteratorBdat2" />
+        <Field name="rowCount" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+
+    <Match>
+        <!-- XptInputStream.position is incremented by a single reader thread.
+             Volatile is for cross-thread visibility, not atomicity. -->
+        <Class name="net.cumba.sasutils.xpt.XptInputStream" />
+        <Method name="read" />
+        <Field name="position" />
+        <Bug pattern="VO_VOLATILE_INCREMENT" />
+    </Match>
+
+</FindBugsFilter>
