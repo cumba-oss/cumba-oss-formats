@@ -36,7 +36,7 @@ import org.jspecify.annotations.Nullable;
  * attributes and all columns.
  * <li>{@link RowSliceHandler} called once in a while while parsing the rows. It provides access to
  * a slice of rows. The number of rows per slice can be configured by calling
- * {@link #setRowSliceSize(int)}.
+ * {@code setRowSliceSize(int)}.
  * <li>{@link RowHandler} called for each parsed row, providing the row values as an
  * {@code Object[]}. This is mutually exclusive with {@link RowSliceHandler}.
  * </ul>
