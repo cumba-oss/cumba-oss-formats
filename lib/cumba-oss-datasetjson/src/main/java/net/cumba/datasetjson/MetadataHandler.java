@@ -12,7 +12,7 @@ public interface MetadataHandler
      *
      * @param aTable
      *            the table metadata.
-     * @return 0 to continue parsing, or any other value to stop parsing.
+     * @return 0 to continue parsing or any other value to stop parsing.
      */
     int metadata(DsjTable aTable);
 }

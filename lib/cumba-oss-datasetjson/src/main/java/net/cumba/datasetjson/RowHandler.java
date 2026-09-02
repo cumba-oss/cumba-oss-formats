@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
  * <li>{@code null} for JSON null values
  * </ul>
  *
- * @see DataSetJsonTableParser
+ * @see DataSetJsonTableParser#setHandlerRow(RowHandler)
  */
 @FunctionalInterface
 public interface RowHandler
