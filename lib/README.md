@@ -7,7 +7,7 @@ and inherit from the project parent pom (`../../pom.xml`).
 ## Modules
 
 - [`cumba-oss-sas-utils`](cumba-oss-sas-utils/README.md) — XPT / SAS7BDAT reader — no dependencies
-- [`cumba-oss-datasetjson`](cumba-oss-datasetjson/README.md) — Dataset-JSON DTO model — no dependencies
+- [`cumba-oss-cdisc-dsj`](cumba-oss-cdisc-dsj/README.md) — Dataset-JSON DTO model — no dependencies
 
 Modules are listed in the parent pom's `<modules>` in dependency order,
 though Maven's reactor derives the real build order itself.

@@ -288,7 +288,7 @@
     -->
     <modules>
         <module>lib/cumba-oss-sas-utils</module>
-        <module>lib/cumba-oss-datasetjson</module>
+        <module>lib/cumba-oss-cdisc-dsj</module>
 
         <module>coverage</module>
     </modules>
@@ -1156,7 +1156,7 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>cumba-oss-datasetjson</artifactId>
+                <artifactId>cumba-oss-cdisc-dsj</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

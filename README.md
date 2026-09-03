@@ -18,7 +18,7 @@ An **independent leaf** — it depends on no other Cumba OSS repository. Consume
 | Module | Java package | Purpose |
 |---|---|---|
 | [`cumba-oss-sas-utils`](lib/cumba-oss-sas-utils/README.md) | `net.cumba.sasutils` | Low-level reader for XPT and SAS7BDAT binary files, built on [`org.thshsh:struct`](https://mvnrepository.com/artifact/org.thshsh/struct). Read-only: no writer, no SAS7BCAT catalog support. |
-| [`cumba-oss-datasetjson`](lib/cumba-oss-datasetjson/README.md) | `net.cumba.datasetjson` | Jackson DTO model for CDISC Dataset-JSON v1.x files. |
+| [`cumba-oss-cdisc-dsj`](lib/cumba-oss-cdisc-dsj/README.md) | `net.cumba.cdisc.dsj` | Jackson DTO model for CDISC Dataset-JSON v1.x files. |
 
 Each module has its own `README.md` with coordinates and dependency detail.
 
@@ -29,7 +29,7 @@ cumba-oss-commons     help · web-api · cdisc-library · bootstrap
       ▲
 cumba-oss-datatable   datatable · impl · cdisc-define · providers · manager-local
       ▲
-cumba-oss-formats     sas-utils · datasetjson            (independent leaf)
+cumba-oss-formats     sas-utils · cdisc-dsj             (independent leaf)
 ```
 
 Dependencies run in one direction only. Build order is

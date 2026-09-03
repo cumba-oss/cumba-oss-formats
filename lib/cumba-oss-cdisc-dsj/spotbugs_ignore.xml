@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+    <!-- ================================================================ -->
+    <!-- 1. Generic project-wide FP categories                            -->
+    <!--    Every instance of these patterns is structurally an FP in     -->
+    <!--    this codebase by project convention. Only categories with     -->
+    <!--    at least one finding in this module are listed.               -->
+    <!-- ================================================================ -->
+
+    <Match>
+        <!-- CT_CONSTRUCTOR_THROW: Idiomatic SPI provider / supplier shape;
+             constructors parse a file or URI and throw IOException; the
+             throw is documented contract and the constructor fails fast
+             without publishing `this`. -->
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+
+    <Match>
+        <!-- REC_CATCH_EXCEPTION: Library-boundary normalisation is
+             intentional; catch (Exception) wraps unknown JDK/library
+             failures into project-typed exceptions or fallback values. -->
+        <Bug pattern="REC_CATCH_EXCEPTION" />
+    </Match>
+
+    <Match>
+        <!-- THROWS_METHOD_THROWS_RUNTIMEEXCEPTION: Established project
+             pattern (LazyValue.get, parser-style rethrows in
+             DataSetJsonTableParallelParser/URIBuilder); declaring the
+             unchecked throws makes the contract visible to callers. -->
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION" />
+    </Match>
+
+    <Match>
+        <!-- UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR: Jackson @Data
+             @NoArgsConstructor DTOs and Lombok builder beans populate
+             fields post-construction rather than in the constructor;
+             project-wide convention. -->
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
+    </Match>
+
+    <!-- ================================================================ -->
+    <!-- 2. Targeted suppressions                                         -->
+    <!--    One <Match> per unique (class, method-or-field, bug pattern)  -->
+    <!--    tuple. Multiple findings sharing the same tuple collapse into -->
+    <!--    one Match (filter has no line-level scope).                   -->
+    <!-- ================================================================ -->
+
+    <Match>
+        <!-- DataSet-JSON spec mandates lowercase ASCII type tokens
+             ("string","integer","float","decimal","boolean","date","time",
+             "datetime","durationDatetime","intervalDatetime","incompleteDatetime",
+             "incompleteDate","incompleteTime","URI"). Enum.toString() is
+             ASCII; locale-insensitive folding is intentional. -->
+        <Class name="net.cumba.cdisc.dsj.ColumnDataType" />
+        <Method name="toDsjString" />
+        <Bug pattern="DM_CONVERT_CASE" />
+    </Match>
+
+    <Match>
+        <!-- DataSet-JSON spec mandates lowercase ASCII type tokens
+             ("string","integer","float","decimal","boolean","date","time",
+             "datetime","durationDatetime","intervalDatetime","incompleteDatetime",
+             "incompleteDate","incompleteTime","URI"). Enum.toString() is
+             ASCII; locale-insensitive folding is intentional. -->
+        <Class name="net.cumba.cdisc.dsj.ColumnTargetDataType" />
+        <Method name="toDsjString" />
+        <Bug pattern="DM_CONVERT_CASE" />
+    </Match>
+
+    <Match>
+        <!-- ColumnBuffer* zero-copy constructors (documented contract). -->
+        <Class name="net.cumba.cdisc.dsj.ColumnBufferDouble" />
+        <Field name="buffer" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- ColumnBuffer* zero-copy constructors (documented contract). -->
+        <Class name="net.cumba.cdisc.dsj.ColumnBufferLong" />
+        <Field name="buffer" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- ColumnBuffer* zero-copy constructors (documented contract). -->
+        <Class name="net.cumba.cdisc.dsj.ColumnBufferObject" />
+        <Field name="buffer" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- ColumnBuffer* zero-copy constructors (documented contract). -->
+        <Class name="net.cumba.cdisc.dsj.ColumnBufferString" />
+        <Field name="buffer" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+</FindBugsFilter>

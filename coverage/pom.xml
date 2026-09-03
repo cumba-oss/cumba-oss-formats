@@ -45,7 +45,7 @@
         </dependency>
         <dependency>
             <groupId>net.cumba</groupId>
-            <artifactId>cumba-oss-datasetjson</artifactId>
+            <artifactId>cumba-oss-cdisc-dsj</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

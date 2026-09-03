@@ -26,7 +26,7 @@ every plugin bound along the way.
 
 The parent pom is special: it's a `pom`-packaged project with no code
 of its own. It exists to share configuration with the child modules
-(`lib/cumba-oss-sas-utils`, `lib/cumba-oss-datasetjson`, etc.). Children inherit:
+(`lib/cumba-oss-sas-utils`, `lib/cumba-oss-cdisc-dsj`, etc.). Children inherit:
 
 - Properties (version numbers, encoding, …).
 - `<pluginManagement>` — default plugin configuration. A child only
@@ -414,7 +414,7 @@ inherit the version. Two reasons to centralise:
 
 The template ships with:
 
-- **In-house module declarations** (`cumba-oss-sas-utils`, `cumba-oss-datasetjson`,
+- **In-house module declarations** (`cumba-oss-sas-utils`, `cumba-oss-cdisc-dsj`,
   `cumba-oss-sas-utils`, …) so children can pull each other in without
   versioning.
 - **`junit-bom` + `mockito-bom`** imported with `<type>pom</type>
