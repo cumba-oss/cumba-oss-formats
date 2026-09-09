@@ -1,5 +1,5 @@
 /*
- * Added by P300 as part of cumba-oss-sas-utils, which is derived from theshoeshiner/sas-utils
+ * Added by P300 as part of this module, which is derived from theshoeshiner/sas-utils
  * (https://github.com/theshoeshiner/sas-utils), licensed under the Apache License, Version 2.0.
  * This file has no upstream counterpart. See this module's README.md for the full attribution
  * notice.

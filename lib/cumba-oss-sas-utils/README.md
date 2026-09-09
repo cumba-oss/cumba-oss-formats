@@ -6,9 +6,13 @@ binary files, built on [`org.thshsh:struct`](https://mvnrepository.com/artifact/
 ## Attribution
 
 This module is **derived from [theshoeshiner/sas-utils](https://github.com/theshoeshiner/sas-utils)**
-by Daniel Jackson, used and adapted under the **Apache License, Version 2.0**.
+by **theshoeshiner**, used and adapted under the **Apache License, Version 2.0**.
 A copy of that licence is included alongside this README as
 [`LICENSE-APACHE-2.0.txt`](LICENSE-APACHE-2.0.txt).
+
+> On the author's name: upstream's `pom.xml` names only the organisation *The Shoe Shiner*, and its
+> sources carry `@author daniel.watson`. Neither supports any other spelling, so the account name is
+> what this notice uses.
 
 > The upstream project carries no `LICENSE` file; the Apache-2.0 grant is declared
 > in its `pom.xml` `<licenses>` block. GitHub's licence detector reads `LICENSE`
