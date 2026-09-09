@@ -157,7 +157,16 @@ public class ObservationIteratorXpt implements Iterator<Observation>
             Object val = tokens.get(i);
             if (vm.getType() == VariableType.NUMERIC)
             {
-                val = ibmToIeee((byte[]) val);
+                try
+                {
+                    val = ibmToIeee((byte[]) val);
+                }
+                catch (IOException e)
+                {
+                    throw new IllegalStateException(
+                            "Unreadable numeric value in XPT observation, variable " + vm.getName(),
+                            e);
+                }
             }
             ob.putValue(vm, val);
         }
@@ -190,7 +199,15 @@ public class ObservationIteratorXpt implements Iterator<Observation>
             Object val = tokens.get(i);
             if (val instanceof byte[] byteArray)
             {
-                val = ibmToIeee(byteArray);
+                try
+                {
+                    val = ibmToIeee(byteArray);
+                }
+                catch (IOException e)
+                {
+                    throw new IllegalStateException(
+                            "Unreadable numeric value in XPT observation, variable index " + i, e);
+                }
                 tokens.set(i, val);
             }
         }
@@ -198,7 +215,25 @@ public class ObservationIteratorXpt implements Iterator<Observation>
     }
 
 
-    public static @Nullable Object ibmToIeee(byte[] bytes)
+    /**
+     * Converts one 8-byte IBM 370 hex-float XPT value to a Java {@link Double}, or {@code null} for
+     * a SAS missing value.
+     * <p>
+     * ⚠ Deliberately lossy for special missings: {@code .}, {@code ._} and {@code .A}-{@code .Z}
+     * all map to the same {@code null}, discarding the tag. This class is inherited from the
+     * original sas-utils source and is not on the product's XPT read path - the product reads XPT
+     * through {@code provider-sas}'s {@code XptVarParser}, and the special-missing tags are handled
+     * at that provider layer. Preserving the tag here would change this class's public contract for
+     * no consumer (owner ruling on F-sas-03, 2026-09).
+     *
+     * @param bytes
+     *            the IBM 370 value, up to 8 bytes (shorter input is zero-padded)
+     * @return the decoded {@link Double}, or {@code null} for any SAS missing value
+     * @throws IOException
+     *             if the bytes are not a value an XPT file can legitimately contain (zero mantissa
+     *             with an unrecognised lead byte)
+     */
+    public static @Nullable Object ibmToIeee(byte[] bytes) throws IOException
     {
 
         byte[] padded = java.util.Arrays.copyOf(bytes, 8);
@@ -229,7 +264,11 @@ public class ObservationIteratorXpt implements Iterator<Observation>
             }
             else
             {
-                throw new IllegalArgumentException("Zero Mantissa Value was not readable");
+                // A zero mantissa with any other lead byte is a byte sequence no SAS-written XPT
+                // file contains. Report it as a checked format error the caller can attribute,
+                // not an unchecked argument exception (F-sas-11).
+                throw new IOException("Unreadable IBM value: zero mantissa with lead byte 0x"
+                        + Integer.toHexString(bytes[0] & 0xFF));
             }
         }
 

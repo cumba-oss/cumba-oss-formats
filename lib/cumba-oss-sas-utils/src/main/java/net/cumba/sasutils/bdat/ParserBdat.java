@@ -478,10 +478,10 @@ public class ParserBdat implements Parser
         LOGGER.debug("header length: {}", pointer.getLength());
         LOGGER.debug("subHeader.remainingLength: {}", subHeader.remainingLength);
 
-        int count1 = (subHeader.remainingLength - 8) / columnNameStruct.byteCount();
-
-        LOGGER.debug("count1: {}", count1);
-
+        // Entry count comes from the subheader pointer's length, the same formula
+        // ColumnAttributesSubHeader.getNumColumnAttributes uses for the attributes subheader
+        // (F-sas-07: previously a second, remainingLength-based formula was computed here and
+        // discarded).
         int count = subHeader.getNumColumnNames();
         LOGGER.debug("column name count: {}", count);
 
@@ -513,7 +513,12 @@ public class ParserBdat implements Parser
 
         LOGGER.debug("ColumnAttributesSubHeader {}", subHeader);
 
-        int count = (subHeader.remainingLength - 8) / columnAttributesStruct.byteCount();
+        // Entry count from the subheader pointer's length - the same formula, in the same place,
+        // as processColumnNameSubHeader uses via getNumColumnNames (F-sas-07: this method used to
+        // derive the count from the subheader's remainingLength field instead, leaving
+        // getNumColumnAttributes dead and the two paths free to disagree on a file whose pointer
+        // length and remainingLength differ).
+        int count = subHeader.getNumColumnAttributes();
 
         LOGGER.debug("count: {}", count);
 

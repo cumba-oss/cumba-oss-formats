@@ -93,4 +93,37 @@ class RleCompressorTest
         };
         assertThrows(IOException.class, () -> compressor.decompressRow(5, row));
     }
+
+
+    @Test
+    void decompressRow_copyRunningPastRowEnd_throws()
+    {
+        // 0x8F encodes a copy of 15 + 1 = 16 bytes but only one source byte remains. Clamping
+        // used to return "A" + 15 fabricated NUL bytes and report success (F-sas-02); SAS pads
+        // character fields with 0x20, so the tail was not even a plausible blank.
+        byte[] row = new byte[]
+        {
+                (byte) 0x8F, 'A'
+        };
+        IOException e = assertThrows(IOException.class, () -> compressor.decompressRow(16, row));
+        assertTrue(e.getMessage().contains("Truncated RLE copy"), e.getMessage());
+    }
+
+
+    @Test
+    void decompressRow_copyEndingExactlyAtRowEnd_isAccepted() throws IOException
+    {
+        // Boundary: exactly enough source bytes must still decode (the guard is >, not >=).
+        byte[] row = new byte[17];
+        row[0] = (byte) 0x8F;
+        for (int i = 0; i < 16; i++)
+        {
+            row[1 + i] = (byte) ('A' + i);
+        }
+        byte[] result = compressor.decompressRow(16, row);
+        for (int i = 0; i < 16; i++)
+        {
+            assertEquals((byte) ('A' + i), result[i]);
+        }
+    }
 }

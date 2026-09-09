@@ -3,6 +3,7 @@ package net.cumba.sasutils.bdat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -129,9 +130,8 @@ class RdcCompressorTest
     void decompressRow_longPattern_command2()
     {
         // cmd=2 long-pattern: ofs = cnt+3 + (next<<4); cnt = (following & 0xFF) + 16.
-        // The decoder uses System.arraycopy(outRow, outOffset-ofs, outRow, outOffset, cnt) —
-        // *not* an LZ77-style overlapping replay, so we must seed the source region with
-        // literal bytes before issuing the back-reference.
+        // Non-overlapping case (ofs == cnt == 16): the copied region is fully behind the write
+        // cursor. The overlapping case (ofs < cnt) is covered separately below (F-sas-01).
         //
         // Layout (manually composed, two control words):
         // ctrl1 = 0x0000 → 16 zero-bits = 16 literals
@@ -193,5 +193,36 @@ class RdcCompressorTest
         {
                 0x7F
         }, result);
+    }
+
+
+    @Test
+    void decompressRow_overlappingShortPattern_replaysPattern()
+    {
+        // Control word 0x1000: bits 1-3 clear = literals 'A','B','C'; bit 4 set = command.
+        // Command byte 0xF0: cmd = 15 (short pattern), cnt nibble 0, extension 0x00 -> ofs = 3.
+        // A back-reference whose distance (3) is smaller than its length (15) is RDC's only
+        // encoding of a repeating multi-byte pattern and must replay bytes it has just written.
+        // With System.arraycopy, bytes 3..14 of the copy came from the still-zero output buffer,
+        // yielding "ABCABC" + 12 NULs (F-sas-01).
+        byte[] row = new byte[]
+        {
+                0x10, 0x00, 'A', 'B', 'C', (byte) 0xF0, 0x00
+        };
+        byte[] result = compressor.decompressRow(18, row);
+        assertArrayEquals("ABCABCABCABCABCABC".getBytes(StandardCharsets.US_ASCII), result);
+    }
+
+
+    @Test
+    void decompressRow_overlappingLongPattern_replaysPattern()
+    {
+        // Same literal seed; command 0x20 0x00 0x00: cmd = 2 (long pattern), ofs = 3, cnt = 16.
+        byte[] row = new byte[]
+        {
+                0x10, 0x00, 'A', 'B', 'C', 0x20, 0x00, 0x00
+        };
+        byte[] result = compressor.decompressRow(19, row);
+        assertArrayEquals("ABCABCABCABCABCABCA".getBytes(StandardCharsets.US_ASCII), result);
     }
 }

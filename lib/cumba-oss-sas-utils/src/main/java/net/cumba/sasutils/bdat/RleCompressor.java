@@ -85,8 +85,20 @@ public class RleCompressor implements Compressor
             }
             case 0x80, 0x90, 0xA0, 0xB0 ->
             {
-                countOfBytesToCopy = Math.min(endOfFirstByte + 1 + (controlByte - 0x80),
-                        length - (currentByteIndex + 1));
+                countOfBytesToCopy = endOfFirstByte + 1 + (controlByte - 0x80);
+                if (countOfBytesToCopy > length - (currentByteIndex + 1))
+                {
+                    // A copy running past the end of the compressed row is a format error, the
+                    // same one the 0x0n arm reports. Clamping it silently returned a short row
+                    // whose tail was left at the zero fill - fabricated NUL bytes reported as
+                    // success (SAS pads character fields with 0x20, so the tail was not even a
+                    // plausible blank).
+                    throw new IOException("Truncated RLE copy at position " + currentByteIndex
+                            + ": control byte 0x"
+                            + Integer.toHexString(row[currentByteIndex] & 0xFF) + " needs "
+                            + countOfBytesToCopy + " source bytes but only "
+                            + (length - (currentByteIndex + 1)) + " remain");
+                }
                 System.arraycopy(row, currentByteIndex + 1, resultByteArray,
                         currentResultArrayIndex, countOfBytesToCopy);
                 currentByteIndex += countOfBytesToCopy;

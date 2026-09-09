@@ -150,6 +150,17 @@ public class Page
         long offset = dataset.getPageHeaderStruct().byteCount()
                 + ((long) dataset.getSubHeaderPointerStruct().byteCount() * getSubHeaderCount());
         long remainder = offset % 8;
+        if (remainder != 0 && remainder != 4)
+        {
+            // On both shipped layouts remainder is 0 or 4 (64-bit: 40 + 24n = 0 mod 8; 32-bit:
+            // 24 + 12n = 0 or 4 mod 8), and at remainder == 4 the three candidate readings of the
+            // advance below - "+= remainder", "+= 4" and "+= 8 - remainder" - are identical, so
+            // nothing distinguishes the original author's intent and no fixture can. If a header
+            // or pointer size ever changes, silently guessing here would surface only as wrong
+            // deleted-row flags in readDeletedMarkers(), so fail loudly instead (F-sas-10).
+            throw new IllegalStateException("Unexpected data-area alignment remainder " + remainder
+                    + " (offset " + offset + "); only 0 and 4 are known layouts");
+        }
         if (remainder != 0 && pageBuffer != null)
         {
             pageBuffer.seek(offset);

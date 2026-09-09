@@ -40,6 +40,16 @@ import org.jspecify.annotations.Nullable;
  * <li>{@link RowHandler} called for each parsed row, providing the row values as an
  * {@code Object[]}. This is mutually exclusive with {@link RowSliceHandler}.
  * </ul>
+ * <h2>Empty datasets — deliberate read/write asymmetry</h2> A Dataset-JSON dataset always carries a
+ * {@code rows} member; a conforming writer therefore emits an explicitly empty {@code "rows": []}
+ * for a zero-record table (strict write; the writer itself is not part of this read-only
+ * distribution). This parser additionally <em>tolerates</em> a document without any {@code rows}
+ * member and delivers it as a valid empty dataset: the metadata handler fires with the parsed
+ * columns and zero row callbacks follow (lenient read). That asymmetry is deliberate — do not
+ * "simplify" the reader by removing the tolerance, and do not weaken the writer to match it. The
+ * lenient path is guarded by the declared-vs-parsed record check: a document declaring
+ * {@code "records" > 0} whose rows are missing (or truncated) fails with an {@link IOException}
+ * instead of parsing to a silent nothing.
  */
 @CustomLog
 public class DataSetJsonTableParser
@@ -212,6 +222,7 @@ public class DataSetJsonTableParser
 
         DsjTableColumn[] columns = null;
         boolean rowsParsed = false;
+        long parsedRows = 0;
         int objDepth = 0;
         while ((token = aParser.nextToken()) != null)
         {
@@ -255,7 +266,7 @@ public class DataSetJsonTableParser
                         }
                     }
 
-                    dispatchParseRows(aParser, table, false);
+                    parsedRows = dispatchParseRows(aParser, table, false);
                     rowsParsed = true;
                 }
                 else
@@ -299,8 +310,60 @@ public class DataSetJsonTableParser
                     }
                 }
                 rowsParsed = true;
-                dispatchParseRows(aParser, table, true);
+                parsedRows = dispatchParseRows(aParser, table, true);
             }
+        }
+
+        if (!rowsParsed)
+        {
+            // A document with metadata and columns but no "rows" member is a legitimate empty
+            // dataset (see the class javadoc on the deliberate read/write asymmetry): build the
+            // table and fire the metadata handler with zero rows instead of returning silently.
+            // The record-count verification below still guards this path — a document that
+            // declares records > 0 but lost its rows fails loudly.
+            if (columns == null)
+            {
+                LOGGER.log(Level.WARNING,
+                        "No \"columns\" attribute defined in a document without rows.");
+                columns = new DsjTableColumn[0];
+            }
+            table = buildTable(metadata, columns);
+            if (handlerMetadata != null)
+            {
+                int res = handlerMetadata.metadata(table);
+                if (res != 0)
+                {
+                    throw new IOException("User aborted!");
+                }
+            }
+        }
+        // Both branches above assign table (the loop branch via rowsParsed); assert for the
+        // flow analysis.
+        verifyRecordCount(Objects.requireNonNull(table, "table"), parsedRows);
+    }
+
+
+    /**
+     * Verify that the declared {@code records} count matches the number of rows actually parsed. A
+     * declared count of {@code -1} means "unknown" and is never checked. A mismatch means the
+     * document is corrupt (typically a truncated upload whose surviving tail is well-formed) and
+     * must not be delivered as a complete dataset.
+     *
+     * @param aTable
+     *            the parsed table carrying the declared {@code records} value.
+     * @param aParsedRows
+     *            the number of rows actually delivered.
+     * @throws IOException
+     *             if a non-negative declared count disagrees with the parsed row count.
+     */
+    protected static void verifyRecordCount(DsjTable aTable, long aParsedRows) throws IOException
+    {
+        long declared = aTable.getRecords();
+        if (declared >= 0 && declared != aParsedRows)
+        {
+            throw new IOException(
+                    "Declared \"records\" (%d) does not match the number of rows parsed (%d)."
+                            .formatted(declared, aParsedRows));
         }
     }
 
@@ -316,20 +379,18 @@ public class DataSetJsonTableParser
      *            the table that is currently parsed.
      * @param aIsNDJson
      *            {@code true} if the rows are in newline delimited JSON format.
+     * @return the number of rows parsed.
      * @throws IOException
      *             in case of any parsing error.
      */
-    private void dispatchParseRows(JsonParser aParser, DsjTable aTable, boolean aIsNDJson)
+    private long dispatchParseRows(JsonParser aParser, DsjTable aTable, boolean aIsNDJson)
         throws IOException
     {
         if (handlerRow != null)
         {
-            parseRowsRowBased(aParser, aTable, aIsNDJson);
+            return parseRowsRowBased(aParser, aTable, aIsNDJson);
         }
-        else
-        {
-            parseRows(aParser, aTable, aIsNDJson);
-        }
+        return parseRows(aParser, aTable, aIsNDJson);
     }
 
 
@@ -345,7 +406,10 @@ public class DataSetJsonTableParser
      */
     protected DsjTable buildTable(Map<String, Object> aMetadata, DsjTableColumn[] aColumns)
     {
-        long recordCount = 0;
+        // -1 is the documented "unknown" sentinel (DsjTable defaults to it and DsjTableWriter
+        // keys every rowCount decision on it). An absent or malformed "records" member must reach
+        // the model as "unknown", never as a fabricated claim of 0 records.
+        long recordCount = -1;
 
         Object recs = aMetadata.get("records");
         if (recs instanceof Number num)
@@ -773,10 +837,11 @@ public class DataSetJsonTableParser
      *            the table that is currently parsed.
      * @param aIsNDJson
      *            {@code true} if the rows are in newline delimited JSON format.
+     * @return the number of rows parsed.
      * @throws IOException
      *             in case of any parsing error.
      */
-    protected void parseRowsRowBased(JsonParser aParser, DsjTable aTable, boolean aIsNDJson)
+    protected long parseRowsRowBased(JsonParser aParser, DsjTable aTable, boolean aIsNDJson)
         throws IOException
     {
         JsonToken token = aParser.getCurrentToken();
@@ -818,7 +883,7 @@ public class DataSetJsonTableParser
                 {
                     throw new IOException("Unexpected token: " + token);
                 }
-                return;
+                return rowIndex + 1;
             }
             default -> throw new IOException("Unexpected token: " + token);
             }
@@ -829,6 +894,7 @@ public class DataSetJsonTableParser
         {
             throw new IOException("Unexpected end after row " + rowIndex);
         }
+        return rowIndex + 1;
     }
 
 
@@ -866,7 +932,7 @@ public class DataSetJsonTableParser
     }
 
 
-    protected void parseRows(JsonParser aParser, DsjTable aTable, boolean aIsNDJson)
+    protected long parseRows(JsonParser aParser, DsjTable aTable, boolean aIsNDJson)
         throws IOException
     {
         JsonToken token = aParser.getCurrentToken();
@@ -932,7 +998,7 @@ public class DataSetJsonTableParser
                         throw new IOException("User aborted!");
                     }
                 }
-                return;
+                return rowIndex + 1;
             }
             default -> throw new IOException("Unexpected token: " + token);
             }
@@ -951,6 +1017,7 @@ public class DataSetJsonTableParser
         {
             throw new IOException("Unexpected end after row " + rowIndex);
         }
+        return rowIndex + 1;
     }
 
 }

@@ -571,7 +571,9 @@ class DataSetJsonTableParserErrorPathsTest
 
         p.parseDataSet(bytes(json));
 
-        assertEquals(0, table.get().getRecords()); // default 0 when records is absent
+        // F-dsj-01: an absent "records" member must surface as the documented -1 "unknown"
+        // sentinel, never as a fabricated claim of 0 records (the old assertion pinned the bug).
+        assertEquals(-1, table.get().getRecords());
     }
 
 

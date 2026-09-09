@@ -73,19 +73,37 @@ public class RdcCompressor implements Compressor
                 ofs += ((srcRow[srcOffset++] & 0xff) << 4);
                 cnt = srcRow[srcOffset++] & 0xff;
                 cnt += 16;
-                System.arraycopy(outRow, outOffset - ofs, outRow, outOffset, cnt);
+                copyPattern(outRow, outOffset, ofs, cnt);
                 outOffset += cnt;
             }
             default ->
             { // short pattern
                 int ofs = cnt + 3;
                 ofs += ((srcRow[srcOffset++] & 0xff) << 4);
-                System.arraycopy(outRow, outOffset - ofs, outRow, outOffset, cmd);
+                copyPattern(outRow, outOffset, ofs, cmd);
                 outOffset += cmd;
             }
             }
         }
         return outRow;
+    }
+
+
+    /**
+     * Copies {@code count} bytes from {@code outOffset - ofs} to {@code outOffset} one byte at a
+     * time, front to back. RDC (the Ross Data Compression scheme, "SASYZCR2") is an LZ77-family
+     * coder: a back-reference whose distance {@code ofs} is smaller than its length is the standard
+     * encoding of a repeating multi-byte pattern, and the copy must re-read bytes it has just
+     * written. {@code System.arraycopy} explicitly must NOT be used here - for overlapping ranges
+     * it behaves as if the source were first copied to a temporary array, so freshly written bytes
+     * are never re-read and the overlap decodes to stale zero-fill instead of the repeated pattern.
+     */
+    private static void copyPattern(byte[] outRow, int outOffset, int ofs, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            outRow[outOffset + i] = outRow[outOffset - ofs + i];
+        }
     }
 
 }

@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -201,6 +202,10 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
         long[] byteBoundaries = splitToNewlineBoundaries(ch, ml.rowsByteStart, fileEnd,
                 parallelism);
 
+        // Total rows delivered across all chunks, for the declared-vs-parsed record check below.
+        // In the parallel path a truncated tail lands entirely in the last chunk, so no single
+        // worker can notice the loss — only the file-level total can.
+        AtomicLong totalRows = new AtomicLong();
         try (ExecutorService pool = Executors.newFixedThreadPool(parallelism,
                 threadFactory("dsj-parse")))
         {
@@ -214,7 +219,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
                 {
                     try
                     {
-                        parseRangeChunk(ch, table, idx, start, end);
+                        totalRows.addAndGet(parseRangeChunk(ch, table, idx, start, end));
                     }
                     catch (IOException ex)
                     {
@@ -224,6 +229,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
             }
             joinAll(futures);
         }
+        verifyRecordCount(table, totalRows.get());
     }
 
 
@@ -483,19 +489,21 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
     /**
      * Per-chunk parser: opens a {@link JsonParser} over a positional slice of the
      * {@link FileChannel} and dispatches rows in batches via {@link ChunkRowsHandler}.
+     *
+     * @return the number of rows parsed in this chunk.
      */
-    private void parseRangeChunk(FileChannel ch, DsjTable table, int chunkIdx, long start, long end)
+    private long parseRangeChunk(FileChannel ch, DsjTable table, int chunkIdx, long start, long end)
         throws IOException
     {
         if (start >= end)
         {
-            return;
+            return 0;
         }
         try (InputStream raw = new ChannelSliceInputStream(ch, start, end);
                 BufferedInputStream bin = new BufferedInputStream(raw, chunkBufferSize);
                 JsonParser p = new JsonFactory().createParser(bin))
         {
-            parseChunkFromParser(p, chunkIdx, table);
+            return parseChunkFromParser(p, chunkIdx, table);
         }
     }
 
@@ -511,11 +519,12 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
     // Object[][] -> @Nullable Object[][] mismatch). The nulls are handled correctly downstream
     // (rows flow into List<@Nullable Object[]> which NullAway does track), so this is safe.
     @SuppressWarnings("NullAway")
-    private void parseChunkFromParser(JsonParser p, int chunkIdx, DsjTable table) throws IOException
+    private long parseChunkFromParser(JsonParser p, int chunkIdx, DsjTable table) throws IOException
     {
         int columnCount = table.getColumnCount();
         Object[][] batch = new Object[CHUNK_BATCH_SIZE][];
         int batchLen = 0;
+        long rows = 0;
         JsonToken tok;
         while ((tok = p.nextToken()) != null)
         {
@@ -524,6 +533,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
                 throw new IOException("Unexpected token in chunk " + chunkIdx + ": " + tok);
             }
             batch[batchLen++] = parseRowToArray(p, columnCount);
+            rows++;
             if (batchLen == batch.length)
             {
                 flushBatch(chunkIdx, table, batchLen, batch);
@@ -534,6 +544,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
         {
             flushBatch(chunkIdx, table, batchLen, batch);
         }
+        return rows;
     }
 
 

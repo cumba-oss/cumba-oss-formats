@@ -56,7 +56,14 @@ public class ColumnAttributesSubHeader extends SubHeader
         long size = pointer.getLength()
                 - ((STRUCT.byteCount() + dataset.header1.getIntegerTokenType().size())
                         + (dataset.get64Bit() ? 12 : 8));
-        return (int) size / ColumnAttributes.STRUCT.byteCount();
+        // The divisor must be the width-specific entry size (12 bytes on 32-bit files, 16 on
+        // 64-bit), not the base ColumnAttributes.STRUCT size. With the base size this method
+        // over-counted by 1.5x/2x on every real file, which is why it was left dead and
+        // processColumnAttributesSubHeader carried its own remainingLength-based formula
+        // (F-sas-07). Measured with the corrected divisor: this formula and
+        // (remainingLength - 8) / entrySize agree on all 30 available SAS-written fixtures.
+        return (int) size / dataset.getStruct(net.cumba.sasutils.bdat.x32.ColumnAttributes32.class,
+                net.cumba.sasutils.bdat.x64.ColumnAttributes64.class).byteCount();
     }
 
 
