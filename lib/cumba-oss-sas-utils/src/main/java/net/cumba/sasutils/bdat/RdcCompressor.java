@@ -58,7 +58,7 @@ public class RdcCompressor implements Compressor
             }
             case 1 ->
             { // long rle
-                cnt += ((srcRow[srcOffset++] & 0xff) << 4);
+                cnt += (srcRow[srcOffset++] & 0xff) << 4;
                 cnt += 19;
                 for (int i = 0; i < cnt; i++)
                 {
@@ -70,7 +70,7 @@ public class RdcCompressor implements Compressor
             case 2 ->
             { // long pattern
                 int ofs = cnt + 3;
-                ofs += ((srcRow[srcOffset++] & 0xff) << 4);
+                ofs += (srcRow[srcOffset++] & 0xff) << 4;
                 cnt = srcRow[srcOffset++] & 0xff;
                 cnt += 16;
                 copyPattern(outRow, outOffset, ofs, cnt);
@@ -79,7 +79,7 @@ public class RdcCompressor implements Compressor
             default ->
             { // short pattern
                 int ofs = cnt + 3;
-                ofs += ((srcRow[srcOffset++] & 0xff) << 4);
+                ofs += (srcRow[srcOffset++] & 0xff) << 4;
                 copyPattern(outRow, outOffset, ofs, cmd);
                 outOffset += cmd;
             }

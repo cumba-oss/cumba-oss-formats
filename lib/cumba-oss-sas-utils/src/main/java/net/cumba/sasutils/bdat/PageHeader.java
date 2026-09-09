@@ -15,15 +15,13 @@ import org.thshsh.struct.StructToken;
 import org.thshsh.struct.StructTokenSuffix;
 import org.thshsh.struct.TokenType;
 
-// @StructToken fields are populated by the org.thshsh.struct deserialiser after construction, so
-// the constructor does not initialise them — hence the Init suppression.
+// @StructToken fields are populated by the org.thshsh.struct deserialiser after construction
+// (reflective field assignment NullAway cannot see) -- hence the Init suppression.
 @SuppressWarnings("NullAway.Init")
 public abstract class PageHeader
 {
 
     @StructToken(order = 0)
-    // @StructTokenSuffix({@StructToken(type = TokenType.Bytes,constant =
-    // "000000000000000000000000",validate = false)}) //TODO needs to be 24 bytes for 64bit
     public Integer pageSequence;
 
     @StructToken(order = 10)

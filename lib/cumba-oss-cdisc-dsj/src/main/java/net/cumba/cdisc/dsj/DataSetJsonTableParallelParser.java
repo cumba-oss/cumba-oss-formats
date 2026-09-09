@@ -552,7 +552,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
         throws IOException
     {
         // The parallel path is only entered when a chunk-rows handler is set (guarded in
-        // parseDataSet, line ~143), so the handler is non-null here.
+        // parseDataSet), so the handler is non-null here.
         ChunkRowsHandler handler = Objects.requireNonNull(handlerChunkRows);
         int res = handler.chunkRows(chunkIdx, table, rowCount, batch);
         if (res != 0)

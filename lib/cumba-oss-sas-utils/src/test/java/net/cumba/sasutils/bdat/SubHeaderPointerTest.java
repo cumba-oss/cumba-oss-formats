@@ -40,6 +40,6 @@ class SubHeaderPointerTest
     @Test
     void notEquals_null()
     {
-        assertNotEquals(pointer(100, 12, (byte) 0, (byte) 0), null);
+        assertNotEquals(null, pointer(100, 12, (byte) 0, (byte) 0));
     }
 }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 
 import lombok.CustomLog;
@@ -64,7 +65,7 @@ public class DataTypeMapperFactory
                     "Mapping from dataType={0} to targetDataType={1} is not really supported!",
                     aType, aTargetType);
             // J2: store an explicit targetDataType="integer" column as floating point too, so a
-            // non-conformant decimal value is not truncated. Paired with the provider's
+            // non-conformant decimal value is not truncated. Paired with the providers'
             // getTypeFor(INTEGER) -> DOUBLE so the value flows through the DOUBLE column path.
             return new DecimalMapper();
 
@@ -281,15 +282,14 @@ public class DataTypeMapperFactory
             }
             try
             {
-                String valStr = aValue.toString();
-                String[] parts = valStr.split(":", 0);
-                int hours = Integer.parseInt(parts[0]);
-                int minutes = Integer.parseInt(parts[1]);
-                int seconds = Integer.parseInt(parts[2]);
-
-                return hours * 3600L + minutes * 60L + seconds;
+                // LocalTime.parse (ISO_LOCAL_TIME) accepts HH:mm, HH:mm:ss and fractional seconds
+                // (HH:mm:ss.SSS); toSecondOfDay() drops any sub-second part, matching the
+                // whole-second representation produced by mapValueFromTargetType. The old
+                // split(":")+parseInt path threw NumberFormatException on fractional seconds and
+                // silently returned null (data loss).
+                return (long) LocalTime.parse(aValue.toString()).toSecondOfDay();
             }
-            catch (Exception _)
+            catch (DateTimeParseException _)
             {
                 return null;
             }

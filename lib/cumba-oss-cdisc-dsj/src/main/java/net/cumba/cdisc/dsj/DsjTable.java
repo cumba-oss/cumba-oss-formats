@@ -172,12 +172,14 @@ public class DsjTable
             return aList == null || aList.isEmpty();
         }
 
-        private static final DateTimeFormatter DSJ_TS = DateTimeFormatter
-                .ofPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(ZoneOffset.UTC);
+        private static final String DSJ_TS_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+
+        private static final DateTimeFormatter DSJ_TS = DateTimeFormatter.ofPattern(DSJ_TS_PATTERN)
+                .withZone(ZoneOffset.UTC);
 
         public DsjTableBuilder setDatasetJSONCreationDateTime(Date aDate)
         {
-            String val = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(aDate);
+            String val = new SimpleDateFormat(DSJ_TS_PATTERN).format(aDate);
             return datasetJSONCreationDateTime(val);
         }
 
@@ -190,7 +192,7 @@ public class DsjTable
 
         public DsjTableBuilder setDbLastModifiedDateTime(Date aDate)
         {
-            String val = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(aDate);
+            String val = new SimpleDateFormat(DSJ_TS_PATTERN).format(aDate);
             return dbLastModifiedDateTime(val);
         }
 

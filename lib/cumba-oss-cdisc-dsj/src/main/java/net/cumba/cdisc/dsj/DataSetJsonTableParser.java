@@ -12,6 +12,7 @@ import java.lang.System.Logger.Level;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -730,15 +731,23 @@ public class DataSetJsonTableParser
             {
                 if (colIdx < aSetters.length)
                 {
-                    LOGGER.log(Level.WARNING, "Not enough values for row {0}.", aArrayIndex);
+                    // Fail loud (symmetric with the too-many branch below): a short row would
+                    // otherwise leave the unwritten columns holding stale values from a reused
+                    // slice buffer, indistinguishable from real data.
+                    String msg = MessageFormat.format(
+                            "Not enough values in row {0}, expected: {1} found: {2}.", aArrayIndex,
+                            aSetters.length, colIdx);
+                    throw new IOException(msg);
                 }
                 return;
             }
 
             if (colIdx >= aSetters.length)
             {
-                throw new IOException("Too many values in row " + aArrayIndex + " expected "
-                        + aSetters.length + " found: " + (colIdx + 1));
+                String msg = MessageFormat.format(
+                        "Too many values in row {0}, expected: {1} found: {2}.", aArrayIndex,
+                        aSetters.length, colIdx + 1);
+                throw new IOException(msg);
             }
 
             parseValueToSetter(aParser, aSetters[colIdx], aArrayIndex);
@@ -773,16 +782,20 @@ public class DataSetJsonTableParser
             {
                 if (colIdx < aColumnCount)
                 {
-                    LOGGER.log(Level.WARNING, "Not enough values for row (expected {0}, got {1}).",
-                            aColumnCount, colIdx);
+                    String msg = MessageFormat.format(
+                            "Not enough values in row, expected: {0} found: {1}.", aColumnCount,
+                            colIdx);
+                    throw new IOException(msg);
                 }
                 return values;
             }
 
             if (colIdx >= aColumnCount)
             {
-                throw new IOException("Too many values in row, expected " + aColumnCount
-                        + " found: " + (colIdx + 1));
+                String msg = MessageFormat.format(
+                        "Too many values in row, expected: {0} found: {1}.", aColumnCount,
+                        colIdx + 1);
+                throw new IOException(msg);
             }
 
             values[colIdx] = parseValueToObject(aParser);
@@ -900,9 +913,8 @@ public class DataSetJsonTableParser
 
     /**
      * Generate column buffers for the given table. Each column gets a buffer matching its data
-     * type: {@link ColumnBufferDouble} for float/double <em>and integer</em> (J2: integer-declared
-     * columns read into a floating-point buffer so a non-conformant decimal value is not truncated
-     * at parse time — paired with the providers' {@code getTypeFor(INTEGER) -> DOUBLE}), and
+     * type: {@link ColumnBufferDouble} for float/double <em>and integer</em> (J2: integer columns
+     * are read as floating point so a non-conformant decimal is not truncated), and
      * {@link ColumnBufferString} for everything else.
      *
      * @param aTable
@@ -920,6 +932,9 @@ public class DataSetJsonTableParser
             switch (t)
             {
             case FLOAT, DOUBLE, INTEGER:
+                // J2: read integer-declared columns into a floating-point buffer so a
+                // non-conformant decimal value is not truncated at parse time (paired with the
+                // providers' getTypeFor(INTEGER) -> DOUBLE).
                 setters[i] = new ColumnBufferDouble(rowSliceSize);
                 break;
             case STRING:

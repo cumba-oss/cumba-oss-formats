@@ -16,6 +16,10 @@ import org.jspecify.annotations.Nullable;
  * <li>{@code null} for JSON null values
  * </ul>
  *
+ * <p>
+ * Registered on the parser via {@code setHandlerRow(RowHandler)} — a Lombok-generated setter, so it
+ * cannot be linked directly.
+ *
  * @see DataSetJsonTableParser
  */
 @FunctionalInterface

@@ -1,5 +1,7 @@
 package net.cumba.cdisc.dsj;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Enum for the {@link DsjTableColumn} property targetDataType.
  */
@@ -34,7 +36,7 @@ public enum ColumnTargetDataType
      *            the string value of the targetDataType property.
      * @return the ColumnTargetDataType.
      */
-    public static ColumnTargetDataType getFor(String aTypeName)
+    public static ColumnTargetDataType getFor(@Nullable String aTypeName)
     {
         if (aTypeName == null)
         {

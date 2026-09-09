@@ -1,5 +1,7 @@
 package net.cumba.sasutils.xpt;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,7 +92,7 @@ class XptTest extends TestUtils
     @Test
     @Disabled("Takes to long to run on regular basis")
     void testAll() throws Exception
-    { // NOSONAR S2699 — exploratory parser test, observation-only
+    {
         Set<Object> fjid = new HashSet<>();
         Set<Object> infostring = new HashSet<>();
         Set<Object> namehash = new HashSet<>();
@@ -120,6 +122,7 @@ class XptTest extends TestUtils
         LOGGER.info("format string: {}", infostring);
         LOGGER.info("namehash: {}", namehash);
         LOGGER.info("types: {}", type);
+        assertNotNull(type);
     }
 
 
@@ -148,7 +151,7 @@ class XptTest extends TestUtils
     @Test
     @Disabled("Takes to long to run on regular basis")
     void testValues() throws Exception
-    { // NOSONAR S2699 — exploratory parser test, observation-only
+    {
         List<File> files = findFiles("");
         LOGGER.info("files: {}", files.size());
         Set<Object> fjid = new HashSet<>();
@@ -171,6 +174,7 @@ class XptTest extends TestUtils
         LOGGER.info("format justify ids: {}", fjid);
         LOGGER.info("format string: {}", infostring);
         LOGGER.info("namehash: {}", namehash);
+        assertNotNull(namehash);
     }
 
 

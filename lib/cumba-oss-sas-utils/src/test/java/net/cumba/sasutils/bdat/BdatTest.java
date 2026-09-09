@@ -1,5 +1,7 @@
 package net.cumba.sasutils.bdat;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ class BdatTest extends TestUtils
 
     @Test
     void testFolder() throws IOException
-    { // NOSONAR S2699 — exploratory parser test, observation-only
+    {
         File lib = new File(System.getProperty("projectBasedir"),
                 "src/test/resources/net/cumba/sasutils/bdatlib");
         LibraryBdat library = parser.parseLibrary(lib);
@@ -37,6 +39,7 @@ class BdatTest extends TestUtils
         LOGGER.info("created: {}", library.getCreated());
         LOGGER.info("modified: {}", library.getModified());
 
+        assertNotNull(library);
     }
 
 
@@ -175,7 +178,7 @@ class BdatTest extends TestUtils
 
     @Test
     void testDatasetNames() throws IOException
-    { // NOSONAR S2699 — exploratory parser test, observation-only
+    {
         List<File> files = findFiles("");
         List<String> datasetnames = new ArrayList<String>();
         for (File file : files)
@@ -194,6 +197,7 @@ class BdatTest extends TestUtils
             }
         }
         LOGGER.info("names: {}", datasetnames);
+        assertNotNull(datasetnames);
     }
 
 

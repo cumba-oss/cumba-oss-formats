@@ -66,13 +66,8 @@
         <Bug pattern="DM_CONVERT_CASE" />
     </Match>
 
-    <Match>
-        <!-- Dataset names written to the BDAT header are <=32 ASCII chars
-             per SAS spec; locale-insensitive folding is intentional. -->
-        <Class name="net.cumba.sasutils.bdat.WriterBdat" />
-        <Method name="writeFileHeader" />
-        <Bug pattern="DM_CONVERT_CASE" />
-    </Match>
+    <!-- The WriterBdat DM_CONVERT_CASE suppression is not carried here: this
+         distribution is read-only and ships no writer classes. -->
 
     <Match>
         <!-- SeekableByteArrayInputStream's aliasing is documented contract;
@@ -441,13 +436,6 @@
 
     <Match>
         <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
-        <Class name="net.cumba.sasutils.bdat.WriterBdat" />
-        <Field name="out" />
-        <Bug pattern="EI_EXPOSE_REP2" />
-    </Match>
-
-    <Match>
-        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
         <Class name="net.cumba.sasutils.xpt.DatasetXpt" />
         <Field name="header" />
         <Bug pattern="EI_EXPOSE_REP2" />
@@ -488,12 +476,9 @@
         <Bug pattern="EI_EXPOSE_REP2" />
     </Match>
 
-    <Match>
-        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
-        <Class name="net.cumba.sasutils.xpt.WriterXpt" />
-        <Field name="out" />
-        <Bug pattern="EI_EXPOSE_REP2" />
-    </Match>
+    <!-- The two Writer* EI_EXPOSE_REP2 suppressions (WriterBdat.out,
+         WriterXpt.out) are not carried here: this distribution is read-only
+         and ships no writer classes. -->
 
     <Match>
         <!-- BCAT label keys are stored as IEEE doubles; equality compares
@@ -1456,6 +1441,32 @@
         <Method name="read" />
         <Field name="position" />
         <Bug pattern="VO_VOLATILE_INCREMENT" />
+    </Match>
+
+    <!-- ================================================================ -->
+    <!-- Parallel page pipeline (PageDataExtractor / BdatPageProducer):    -->
+    <!-- zero-copy by design on multi-GB SAS files, same rationale as the  -->
+    <!-- other binary-parser EI_EXPOSE suppressions above.                 -->
+    <!-- ================================================================ -->
+
+    <Match>
+        <!-- The producer shares the read-only DatasetBdat with worker threads during a load;
+             defensive copying a multi-GB dataset descriptor is infeasible and unnecessary. -->
+        <Class name="net.cumba.sasutils.bdat.BdatPageProducer" />
+        <Field name="dataset" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <Match>
+        <!-- PageRows is a transient, single-use carrier of one page's decompressed rows; copying
+             the row list on construction/access would defeat the pipeline's zero-copy purpose. -->
+        <Class name="net.cumba.sasutils.bdat.PageDataExtractor$PageRows" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <Class name="net.cumba.sasutils.bdat.PageDataExtractor$PageRows" />
+        <Bug pattern="EI_EXPOSE_REP2" />
     </Match>
 
 </FindBugsFilter>

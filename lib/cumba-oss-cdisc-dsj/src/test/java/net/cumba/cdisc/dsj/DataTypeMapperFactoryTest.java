@@ -138,6 +138,26 @@ class DataTypeMapperFactoryTest
         assertNull(mapper.mapValueToTargetType("bad-time"));
     }
 
+
+    @Test
+    void testTimeMapperFractionalSeconds()
+    {
+        IDataTypeMapper mapper = factory.getMapper(ColumnDataType.TIME,
+                ColumnTargetDataType.INTEGER);
+        // 12:34:56.789 -> 12*3600 + 34*60 + 56 = 45296 (sub-second part dropped, not a null).
+        assertEquals(45296L, mapper.mapValueToTargetType("12:34:56.789"));
+    }
+
+
+    @Test
+    void testTimeMapperHoursAndMinutesOnly()
+    {
+        IDataTypeMapper mapper = factory.getMapper(ColumnDataType.TIME,
+                ColumnTargetDataType.INTEGER);
+        // HH:mm form (no seconds) parses too: 01:02 = 3720.
+        assertEquals(3720L, mapper.mapValueToTargetType("01:02"));
+    }
+
     // --- DecimalMapper ---
 
 

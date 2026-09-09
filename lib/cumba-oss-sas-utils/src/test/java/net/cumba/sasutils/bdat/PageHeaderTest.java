@@ -41,6 +41,6 @@ class PageHeaderTest
     @Test
     void notEquals_null()
     {
-        assertNotEquals(header(1, (short) 0, (short) 5, (short) 2), null);
+        assertNotEquals(null, header(1, (short) 0, (short) 5, (short) 2));
     }
 }

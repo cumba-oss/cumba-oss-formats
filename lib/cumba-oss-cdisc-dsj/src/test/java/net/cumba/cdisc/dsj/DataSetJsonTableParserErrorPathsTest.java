@@ -167,9 +167,10 @@ class DataSetJsonTableParserErrorPathsTest
 
 
     @Test
-    void testNotEnoughValuesInRowWarnsButContinues()
+    void testNotEnoughValuesInRowThrows()
     {
-        // Two columns expected but only one given -> warning logged, row still delivered.
+        // Two columns expected but only one given -> fail loud (slice path). Previously this was
+        // a warn-and-continue, which left the unwritten column holding a stale reused-buffer value.
         String json = "{" + "\"datasetJSONCreationDateTime\":\"2025-01-01T00:00:00\","
                 + "\"datasetJSONVersion\":\"1.1.0\","
                 + "\"itemGroupOID\":\"IG.T\",\"name\":\"T\",\"label\":\"L\",\"records\":1,"
@@ -181,7 +182,7 @@ class DataSetJsonTableParserErrorPathsTest
         DataSetJsonTableParser p = parser();
         p.setHandlerMetadata(_ -> 0);
         p.setHandlerRows((_, _, _, _) -> 0);
-        assertDoesNotThrow(() -> p.parseDataSet(bytes(json)));
+        assertThrows(IOException.class, () -> p.parseDataSet(bytes(json)));
     }
 
 
@@ -202,8 +203,9 @@ class DataSetJsonTableParserErrorPathsTest
 
 
     @Test
-    void testRowHandlerTooFewValuesWarnsButContinues()
+    void testRowHandlerTooFewValuesThrows()
     {
+        // Row-array path: too few values now fails loud rather than returning trailing nulls.
         String json = "{" + "\"datasetJSONCreationDateTime\":\"2025-01-01T00:00:00\","
                 + "\"datasetJSONVersion\":\"1.1.0\","
                 + "\"itemGroupOID\":\"IG.T\",\"name\":\"T\",\"label\":\"L\",\"records\":1,"
@@ -215,7 +217,7 @@ class DataSetJsonTableParserErrorPathsTest
         DataSetJsonTableParser p = parser();
         p.setHandlerMetadata(_ -> 0);
         p.setHandlerRow((_, _, _) -> 0);
-        assertDoesNotThrow(() -> p.parseDataSet(bytes(json)));
+        assertThrows(IOException.class, () -> p.parseDataSet(bytes(json)));
     }
 
     // --- parseObject / parseArray / parseColumns errors ---

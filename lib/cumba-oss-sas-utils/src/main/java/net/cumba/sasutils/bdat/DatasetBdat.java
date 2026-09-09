@@ -37,7 +37,8 @@ import org.thshsh.struct.Struct;
 
 // Header/sub-header fields (header1..4, rowSizeSubHeader, columnNamesSubHeader, …) are populated by
 // the parser after construction via setters, and dereferences are guarded by null checks or an
-// IllegalStateException ("metadata not yet parsed"), so the constructor does not initialise them.
+// IllegalStateException ("metadata not yet parsed"), so the constructor does not initialise them --
+// hence the Init suppression.
 @SuppressWarnings("NullAway.Init")
 public class DatasetBdat extends Dataset
 {
@@ -73,6 +74,21 @@ public class DatasetBdat extends Dataset
     List<FormatAndLabelSubHeader> formatAndLabels = new ArrayList<>();
 
     protected long metadataPageCount = -1;
+
+    /**
+     * Memoized {@link #getPageHeaderStruct()} byte count; {@code -1} until first computed. The
+     * value is constant once {@code header1} is parsed (it depends only on 32-vs-64-bitness), but
+     * {@code Struct.create(...)} allocates a fresh {@code Struct} and token list on every call, and
+     * {@link Page#getDataAreaOffset()} asks for it once per page — on every worker thread of the
+     * parallel loader. {@code volatile} rather than plain: a benign duplicate computation is fine
+     * (it is idempotent), an unpublished write is not.
+     */
+    private volatile int pageHeaderByteCount = -1;
+
+    /**
+     * Memoized {@link #getSubHeaderPointerStruct()} byte count; see {@link #pageHeaderByteCount}.
+     */
+    private volatile int subHeaderPointerByteCount = -1;
 
     protected @Nullable File file;
 
@@ -472,6 +488,42 @@ public class DatasetBdat extends Dataset
     public Struct<? extends SubHeaderPointer> getSubHeaderPointerStruct()
     {
         return getStruct(SubHeaderPointer32.class, SubHeaderPointer64.class);
+    }
+
+
+    /**
+     * The byte size of one page header, memoized — see {@link #pageHeaderByteCount}. Prefer this
+     * over {@code getPageHeaderStruct().byteCount()} on any per-page path.
+     *
+     * @return the page-header byte count.
+     */
+    public int getPageHeaderByteCount()
+    {
+        int cached = pageHeaderByteCount;
+        if (cached < 0)
+        {
+            cached = getPageHeaderStruct().byteCount();
+            pageHeaderByteCount = cached;
+        }
+        return cached;
+    }
+
+
+    /**
+     * The byte size of one subheader pointer, memoized — see {@link #pageHeaderByteCount}. Prefer
+     * this over {@code getSubHeaderPointerStruct().byteCount()} on any per-page path.
+     *
+     * @return the subheader-pointer byte count.
+     */
+    public int getSubHeaderPointerByteCount()
+    {
+        int cached = subHeaderPointerByteCount;
+        if (cached < 0)
+        {
+            cached = getSubHeaderPointerStruct().byteCount();
+            subHeaderPointerByteCount = cached;
+        }
+        return cached;
     }
 
 

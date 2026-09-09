@@ -147,8 +147,10 @@ public class Page
      */
     public long getDataAreaOffset()
     {
-        long offset = dataset.getPageHeaderStruct().byteCount()
-                + ((long) dataset.getSubHeaderPointerStruct().byteCount() * getSubHeaderCount());
+        // Memoized byte counts, not getXStruct().byteCount(): this runs once per page on every
+        // worker thread and Struct.create allocates a fresh Struct plus token list each call.
+        long offset = dataset.getPageHeaderByteCount()
+                + ((long) dataset.getSubHeaderPointerByteCount() * getSubHeaderCount());
         long remainder = offset % 8;
         if (remainder != 0 && remainder != 4)
         {

@@ -353,14 +353,16 @@ public class ParserBdat implements Parser
     protected static void loadPageSubHeaderPointers(DatasetBdat dataset, Page page)
         throws IOException
     {
+        // A null page type means an unrecognised page; it carries no metadata subheaders to load.
         PageType pageType = page.getPageType();
         if (pageType == null || !pageType.meta || page.getSubHeaderCount() <= 0)
         {
             return;
         }
 
-        // Seek past the page header to the subheader pointer area
-        long pointerStart = dataset.getPageHeaderStruct().byteCount();
+        // Seek past the page header to the subheader pointer area. Memoized byte count: this also
+        // runs on worker threads via BdatPageProducer#decodePageAt on the mmap fast path.
+        long pointerStart = dataset.getPageHeaderByteCount();
         page.pageBuffer.seek(pointerStart);
 
         // Read all subheader pointers
