@@ -11,12 +11,12 @@ package net.cumba.sasutils.xpt;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import net.cumba.sasutils.Observation;
 import net.cumba.sasutils.VariableType;
-import org.apache.commons.io.IOUtils;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class ObservationIteratorXpt implements Iterator<Observation>
 
     protected byte[] buffer;
 
-    protected InputStream input;
+    protected ObservationFrameReaderXpt frames;
 
     protected DatasetXpt member;
 
@@ -62,7 +62,6 @@ public class ObservationIteratorXpt implements Iterator<Observation>
     {
 
         this.member = m;
-        this.input = in;
 
         // observations are stored as a packed struct consisting of either bytes or characters for
         // each variable
@@ -77,7 +76,10 @@ public class ObservationIteratorXpt implements Iterator<Observation>
 
         try
         {
-            IOUtils.skip(input, member.getObservationStartByte());
+            // The frame reader owns the stream, the pushback, the read buffer and all three
+            // end-of-member decisions; this iterator only maps frames to Observations.
+            frames = new ObservationFrameReaderXpt(in, observationSize,
+                    member.getObservationStartByte());
         }
         catch (IOException e)
         {
@@ -103,22 +105,13 @@ public class ObservationIteratorXpt implements Iterator<Observation>
         {
             if (needToRead)
             {
-                int read = IOUtils.read(input, buffer);
-                if (read != observationSize)
+                // The frame reader makes all three end-of-member decisions (truncated tail,
+                // header-record end, blank padding) and returns null when the member's rows end.
+                byte[] frame = frames.nextFrame();
+                hasNext = frame != null;
+                if (frame != null)
                 {
-                    hasNext = false;
-                }
-                else
-                {
-                    hasNext = false;
-                    for (byte b : buffer)
-                    {
-                        if (b != SENTINEL)
-                        {
-                            hasNext = true;
-                            break;
-                        }
-                    }
+                    buffer = frame;
                 }
                 needToRead = false;
             }
@@ -236,7 +229,7 @@ public class ObservationIteratorXpt implements Iterator<Observation>
     public static @Nullable Object ibmToIeee(byte[] bytes) throws IOException
     {
 
-        byte[] padded = java.util.Arrays.copyOf(bytes, 8);
+        byte[] padded = Arrays.copyOf(bytes, 8);
 
         List<Object> tokens = IBM.unpack(padded);
         Long val = ((Number) tokens.get(0)).longValue();
