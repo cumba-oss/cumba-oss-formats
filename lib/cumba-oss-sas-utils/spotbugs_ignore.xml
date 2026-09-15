@@ -232,6 +232,17 @@
     </Match>
 
     <Match>
+        <!-- The frame reader hands its own read buffer back on purpose: the
+             frame is unpacked immediately, and the one caller that retains it
+             (datatable's XptObservation) copies at the point of retention.
+             Copying here would allocate per row on multi-GB XPT reads, and
+             would make that caller copy twice. Contract is in the javadoc. -->
+        <Class name="net.cumba.sasutils.xpt.ObservationFrameReaderXpt" />
+        <Method name="nextFrame" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
         <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
         <Class name="net.cumba.sasutils.Dataset" />
         <Field name="library" />
