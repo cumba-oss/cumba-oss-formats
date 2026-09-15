@@ -12,12 +12,12 @@ package net.cumba.sasutils.bdat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.jspecify.annotations.Nullable;
 
-// header is set via setHeader(), subHeaderPointers is built lazily, and pageBuffer is assigned by
-// the parser after construction; the constructor only sets dataset, so these are not initialised
-// there — hence the Init suppression.
+// header, subHeaderPointers and pageBuffer are wired up by the parser after construction
+// (setHeader,
+// setSubHeaderPointers, the buffer load), so the constructor does not initialise them -- hence the
+// Init suppression.
 @SuppressWarnings("NullAway.Init")
 public class Page
 {
@@ -97,9 +97,29 @@ public class Page
     }
 
 
+    /**
+     * Whether this page carries any observation row.
+     * <p>
+     * Observations reach a page two ways, and {@link #getTotalObservationCount()} is the sum of
+     * both: block rows in the page's data area ({@link #getBlockObservationCount()}, non-zero for
+     * {@code DATA}, {@code DATA2}, {@code MIXED1} and {@code MIXED2}) and compressed rows stored in
+     * {@code DATA} subheaders ({@link #getHeaderObservationCount()}, which is how a compressed
+     * {@code META} page carries data). This method is that same test, and asking it rather than
+     * repeating the sum is the point of having it.
+     * <p>
+     * ⚠ It used to read {@code getPageType() == PageType.DATA && blockCount > 0}, which answered
+     * <strong>false</strong> for three page types that do carry rows. The page type is a bit field:
+     * ReadStat masks it with {@code SAS_PAGE_TYPE_MASK 0x0F00} before comparing
+     * (<code>readstat_sas7bdat_read.c:923</code>), so {@code DATA2} (0x180) <em>is</em> a data page
+     * and {@code MIXED2} (0x280) <em>is</em> a mix page -- the 0x80 bit only marks that the page
+     * also holds deleted records. {@code MIXED1} (0x200) was excluded outright, and so was every
+     * compressed {@code META} page. Corrected per owner ruling Q2, 2026-09-11.
+     *
+     * @return true if reading this page yields at least one observation
+     */
     public Boolean hasObservations()
     {
-        return getPageType() != null && getPageType() == PageType.DATA && header.blockCount > 0;
+        return getTotalObservationCount() > 0;
     }
 
 

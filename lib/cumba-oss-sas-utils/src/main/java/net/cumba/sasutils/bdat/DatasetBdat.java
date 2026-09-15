@@ -279,10 +279,24 @@ public class DatasetBdat extends Dataset
         {
             LOGGER.trace("string: {}", h.string);
             String s = h.getSubString(start, length);
+            // NUL is padding, not text. Three of the bundled fixtures store the dataset label as
+            // "Written by SAS\0\0" and one stores the creator process as "ids\0": those writers
+            // pad the text slice with U+0000 instead of spaces. stripTrailing() strips
+            // whitespace, and U+0000 is not whitespace, so before this line the NULs travelled on
+            // into the UI and into every export. Owner ruling Q3, 2026-09-11: pad with spaces --
+            // so each NUL becomes a space here and the right-trim below then removes it, which
+            // for trailing padding is the same answer ReadStat gives (readstat_convert strips
+            // both ' ' and '\0' off the end of EVERY metadata string it converts).
+            // This is the one place every metadata string is sliced -- dataset label, creator
+            // process/software, compression method, column names, labels and formats all arrive
+            // here -- so fixing it here fixes the siblings too, rather than only the label the
+            // defect was found on. String.replace(char, char) returns the same instance when
+            // there is nothing to replace, so the untouched case costs one scan.
+            String padded = s.replace('\0', ' ');
             // Right-trim only: SAS pads metadata strings (names, labels, formats) on the
             // trailing side. Leading whitespace, however unusual, is intentional and must be
             // preserved (mirrors the record-value fix in ObservationIteratorBdat).
-            return trim ? s.stripTrailing() : s;
+            return trim ? padded.stripTrailing() : padded;
         }).findFirst();
     }
 

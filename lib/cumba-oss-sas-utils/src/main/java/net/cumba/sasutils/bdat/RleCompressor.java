@@ -49,7 +49,19 @@ public class RleCompressor implements Compressor
             }
             case 0x40 ->
             {
-                int copyCounter = endOfFirstByte * 16 + (row[currentByteIndex + 1] & 0xFF);
+                // ⚠ The nibble scales by 256, not 16 - it is the high byte of a 16-bit run
+                // length whose low byte is the operand. This read `* 16` until 2026-09-11,
+                // which made the encoding ambiguous (nibble 1 / operand 0 and nibble 0 /
+                // operand 16 both decoded to 34) and shortened every run of 274 or more
+                // identical bytes by 240 per nibble step - a wide blank-padded character
+                // column - after which the write cursor was wrong for the whole rest of the
+                // row. Confirmed against ReadStat's decompressor AND its compressor
+                // (readstat_sas_rle.c, SAS_RLE_COMMAND_INSERT_BYTE18:
+                // `(*input++) + 18 + length * 256`, emitted as `(insert_run - 18) / 256`)
+                // and against pandas (_libs/sas.pyx, control byte 0x40). The 0x5n/0x6n/0x7n
+                // arms below - the same command with an implied fill byte - already scale
+                // by 256, which is the tell.
+                int copyCounter = endOfFirstByte * 256 + (row[currentByteIndex + 1] & 0xFF);
                 for (int i = 0; i < copyCounter + 18; i++)
                 {
                     resultByteArray[currentResultArrayIndex++] = row[currentByteIndex + 2];

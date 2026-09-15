@@ -158,7 +158,9 @@ public class PositionAwareInputStream extends InputStream
     @Override
     public void close() throws IOException
     {
+        // No super.close(): this extends InputStream directly, whose close() is documented to do
+        // nothing. The call used to be here and read as "close the base stream too", which it
+        // never did - the wrapped stream is closed on the line above and nowhere else.
         stream.close();
-        super.close();
     }
 }
