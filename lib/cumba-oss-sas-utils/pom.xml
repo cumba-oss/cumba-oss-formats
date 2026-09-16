@@ -39,6 +39,31 @@
 
     <properties>
         <mockito.agent>-javaagent:${org.mockito:mockito-core:jar}</mockito.agent>
+
+        <!--
+            Quality floors for this module, measured COLD on THIS subset (2026-09-16), not
+            carried over from the internal twin: this repository ships no writer and no
+            sas7bcat-catalog classes, so internal's 87 / 93 / 88 were measured over a
+            different file set and do not transfer.
+
+            Measured here: 1037 mutants, 963 KILLED, 5 TIMED_OUT, 61 SURVIVED,
+            8 NO_COVERAGE -> mutation coverage 93 % (92.9 % counting only KILLED),
+            test strength 94 %, pitest line coverage 96 %, JaCoCo line coverage 95.9 %.
+
+            Each floor is the measured figure minus about two points, per the ratchet rule.
+            They replace the root pom's inherited 55 / 80 / 0 and 0.80 - against which a
+            measured 93 % could regress into the low 70s with every gate still green, and
+            the strength gate at 0 could not fail at any score at all.
+
+            ⛔ A floor is never lowered. If a change drops this module below one of them,
+            the change is wrong or its tests are missing - do not re-base the number. Never
+            pass -Dpitest.mutation.threshold or -Djacoco.line.coverage on the command line
+            either; a CLI -D clobbers every module's value at once.
+        -->
+        <pitest.mutation.target>91</pitest.mutation.target>
+        <pitest.coverage.target>94</pitest.coverage.target>
+        <pitest.test.strength.target>92</pitest.test.strength.target>
+        <jacoco.line.coverage>0.93</jacoco.line.coverage>
     </properties>
 
     <dependencies>
