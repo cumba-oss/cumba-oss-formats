@@ -185,11 +185,10 @@ public class ParserBdat implements Parser
                 LOGGER.trace("PageHeader: {}", pageHeader);
                 LOGGER.trace("Page: {}", page);
 
-                // Read the page type ONCE. Null-checking one call and dereferencing a
-                // second is what SpotBugs flags as
-                // NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE: nothing guarantees the later
-                // calls return the same non-null value, so the check above protected
-                // nothing. parseSubHeaders below already uses this idiom.
+                // Read the page type ONCE. PageHeader.getPageType() recomputes it via
+                // PageType.fromId on every call rather than returning a stored field, and the
+                // null check below should guard the value actually dereferenced rather than a
+                // separate invocation of it. Same idiom as parseSubHeaders below.
                 PageType pageType = page.getPageType();
                 if (pageType == null)
                 {
@@ -275,10 +274,12 @@ public class ParserBdat implements Parser
                                 continue;
                             }
 
+                            // 'type' is non-null here (guarded above) and was just stored via
+                            // pointer.setSignature(type); use it directly so NullAway sees the
+                            // proven-non-null switch selector.
                             if (type != SubHeaderSignature.DATA)
                             {
-                                // type is non-null here (the null case continues above) and equals
-                                // the signature just set on the pointer.
+
                                 switch (type)
                                 {
                                 case COLUMN_ATTRIBUTES -> processColumnAttributesSubHeader(dataset,

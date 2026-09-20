@@ -11,7 +11,6 @@ package net.cumba.sasutils.bdat;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.jspecify.annotations.Nullable;
 
 public enum SubHeaderSignature
