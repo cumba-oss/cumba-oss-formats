@@ -444,4 +444,22 @@ class DataTypeMapperFactoryTest
         assertEquals("hello", m.mapValueFromTargetType("hello"));
         assertEquals(42, m.mapValueFromTargetType(42));
     }
+
+
+    @Test
+    void testUnixMappersLeaveTheReadDirectionUntouched()
+    {
+        // The Unix-epoch mappers are inverse-only: Dataset-JSON never carries Unix-epoch encoded
+        // dates, so the forward direction must hand the value straight back rather than invent a
+        // conversion. Returning null here would blank an R-sourced column on the way in.
+        DataTypeMapperFactory f = new DataTypeMapperFactory();
+        IDataTypeMapper date = f.getUnixEpochMapper(ColumnDataType.DATE);
+        IDataTypeMapper dateTime = f.getUnixEpochMapper(ColumnDataType.DATETIME);
+
+        assertEquals("2025-06-15", date.mapValueToTargetType("2025-06-15"));
+        assertEquals("2025-06-15T10:30:00", dateTime.mapValueToTargetType("2025-06-15T10:30:00"));
+        assertEquals(Long.valueOf(42L), date.mapValueToTargetType(Long.valueOf(42L)));
+        assertNull(date.mapValueToTargetType(null));
+        assertNull(dateTime.mapValueToTargetType(null));
+    }
 }

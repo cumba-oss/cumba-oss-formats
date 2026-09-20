@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -129,11 +130,13 @@ class DataSetJsonTableParserErrorPathsTest
 
 
     @Test
-    void testRowsWithoutColumnsLogsWarningThrows()
+    void testRowsWithoutColumnsThrowsNamingTheMissingMember()
     {
-        // rows present but columns missing — parser logs a warning and then tries to build
-        // a DsjTable with an empty columns array. DsjTable's @NonNull@Singular setter rejects
-        // this, surfacing a NullPointerException through parseDataSet.
+        // "columns" is a required Dataset-JSON member and this parser needs it before "rows",
+        // because the row shape decides which buffer each value goes into. This used to warn and
+        // continue with a zero-length column array, which the builder treats as "unset" — so a
+        // Lombok @NonNull NullPointerException naming a field escaped a method declared to throw
+        // IOException, and a caller catching IOException to report a bad file never saw it.
         String json = "{" + "\"datasetJSONCreationDateTime\":\"2025-01-01T00:00:00\","
                 + "\"datasetJSONVersion\":\"1.1.0\","
                 + "\"itemGroupOID\":\"IG.T\",\"name\":\"T\",\"label\":\"L\",\"records\":0,"
@@ -142,9 +145,10 @@ class DataSetJsonTableParserErrorPathsTest
         DataSetJsonTableParser p = parser();
         p.setHandlerMetadata(_ -> 0);
         p.setHandlerRows((_, _, _, _) -> 0);
-        // exercise the warning branch even though the build then fails on @NonNull columns.
         ByteArrayInputStream data = bytes(json);
-        assertThrows(NullPointerException.class, () -> p.parseDataSet(data));
+        IOException ex = assertThrows(IOException.class, () -> p.parseDataSet(data));
+        assertTrue(ex.getMessage().contains("missing required Dataset-JSON field: columns"),
+                ex.getMessage());
     }
 
     // --- Row value parsing: too-many / too-few values ---

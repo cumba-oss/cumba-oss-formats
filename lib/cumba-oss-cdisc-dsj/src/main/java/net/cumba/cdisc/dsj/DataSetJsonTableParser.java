@@ -42,15 +42,20 @@ import org.jspecify.annotations.Nullable;
  * {@code Object[]}. This is mutually exclusive with {@link RowSliceHandler}.
  * </ul>
  * <h2>Empty datasets — deliberate read/write asymmetry</h2> A Dataset-JSON dataset always carries a
- * {@code rows} member; a conforming writer therefore emits an explicitly empty {@code "rows": []}
- * for a zero-record table (strict write; the writer itself is not part of this read-only
- * distribution). This parser additionally <em>tolerates</em> a document without any {@code rows}
- * member and delivers it as a valid empty dataset: the metadata handler fires with the parsed
- * columns and zero row callbacks follow (lenient read). That asymmetry is deliberate — do not
- * "simplify" the reader by removing the tolerance, and do not weaken the writer to match it. The
- * lenient path is guarded by the declared-vs-parsed record check: a document declaring
- * {@code "records" > 0} whose rows are missing (or truncated) fails with an {@link IOException}
- * instead of parsing to a silent nothing.
+ * {@code rows} member; the companion {@code DsjTableWriter} therefore emits an explicitly empty
+ * {@code "rows": []} for a zero-record table (strict write). This parser additionally
+ * <em>tolerates</em> a document without any {@code rows} member and delivers it as a valid empty
+ * dataset: the metadata handler fires with the parsed columns and zero row callbacks follow
+ * (lenient read). That asymmetry is deliberate — do not "simplify" the reader by removing the
+ * tolerance, and do not weaken the writer to match it. The lenient path is guarded by the
+ * declared-vs-parsed record check: a document declaring {@code "records" > 0} whose rows are
+ * missing (or truncated) fails with an {@link IOException} instead of parsing to a silent nothing.
+ * <p>
+ * The tolerance covers {@code rows} and nothing else. {@code columns} is a required member and this
+ * parser additionally needs it <em>before</em> the row data, since the row shape decides which
+ * buffer each value goes into; a document without it fails with an {@link IOException} naming the
+ * missing member.
+ * </p>
  */
 @CustomLog
 public class DataSetJsonTableParser
@@ -154,7 +159,11 @@ public class DataSetJsonTableParser
 
         bin.mark(100);
         byte[] header = new byte[2];
-        int bytesRead = bin.read(header);
+        // readNBytes, not read(byte[]): a single read() is contractually allowed to return fewer
+        // bytes than requested whenever the source has not delivered them yet (a socket-backed
+        // URL stream is the realistic case), which would reject a perfectly valid document as
+        // "too short". readNBytes only comes up short at a genuine end-of-stream.
+        int bytesRead = bin.readNBytes(header, 0, 2);
         if (bytesRead < 2)
         {
             throw new IOException(
@@ -248,14 +257,7 @@ public class DataSetJsonTableParser
                 }
                 else if (Objects.equals(fieldName, "rows"))
                 {
-                    if (columns == null)
-                    {
-                        LOGGER.log(Level.WARNING,
-                                "No \"columns\" attribute defined before \"rows\" attribute. This is not supported!");
-                        columns = new DsjTableColumn[0];
-                    }
-
-                    table = buildTable(metadata, columns);
+                    table = buildTable(metadata, requireColumnsBeforeRows(columns));
                     // parse the row data
                     // this is expected to be defined as last attribute.
                     if (handlerMetadata != null)
@@ -292,14 +294,7 @@ public class DataSetJsonTableParser
                     throw new IOException("Rows already parsed");
                 }
 
-                if (columns == null)
-                {
-                    LOGGER.log(Level.WARNING,
-                            "No \"columns\" attribute defined before \"rows\" attribute. This is not supported!");
-                    columns = new DsjTableColumn[0];
-                }
-
-                table = buildTable(metadata, columns);
+                table = buildTable(metadata, requireColumnsBeforeRows(columns));
                 // parse the row data
                 // this is expected to be defined as last attribute.
                 if (handlerMetadata != null)
@@ -324,9 +319,7 @@ public class DataSetJsonTableParser
             // declares records > 0 but lost its rows fails loudly.
             if (columns == null)
             {
-                LOGGER.log(Level.WARNING,
-                        "No \"columns\" attribute defined in a document without rows.");
-                columns = new DsjTableColumn[0];
+                throw new IOException("missing required Dataset-JSON field: columns");
             }
             table = buildTable(metadata, columns);
             if (handlerMetadata != null)
@@ -341,6 +334,38 @@ public class DataSetJsonTableParser
         // Both branches above assign table (the loop branch via rowsParsed); assert for the
         // flow analysis.
         verifyRecordCount(Objects.requireNonNull(table, "table"), parsedRows);
+    }
+
+
+    /**
+     * Reject a document whose row data starts before any {@code columns} member has been seen.
+     *
+     * <p>
+     * {@code columns} is a required Dataset-JSON member, and this parser additionally needs it
+     * <em>before</em> {@code rows} because the row shape decides which column buffer each value
+     * goes into. This used to log a warning and continue with a zero-length column array, which
+     * could not work: {@code DsjTable.DsjTableBuilder.columns()} treats an empty array as "unset",
+     * so {@code build()} then failed the {@code @NonNull} check and a NullPointerException escaped
+     * a method declared to throw {@link IOException} — naming a Lombok field rather than the
+     * missing member. A caller that catches {@link IOException} to report a bad file never saw it.
+     * </p>
+     *
+     * @param aColumns
+     *            the columns parsed so far, or {@code null} if none were seen.
+     * @return the columns, never {@code null}.
+     * @throws IOException
+     *             if no {@code columns} member preceded the row data.
+     */
+    private static DsjTableColumn[] requireColumnsBeforeRows(DsjTableColumn @Nullable [] aColumns)
+        throws IOException
+    {
+        if (aColumns == null)
+        {
+            throw new IOException(
+                    "missing required Dataset-JSON field: columns; it must be declared before "
+                            + "\"rows\"");
+        }
+        return aColumns;
     }
 
 
@@ -407,9 +432,20 @@ public class DataSetJsonTableParser
      */
     protected DsjTable buildTable(Map<String, Object> aMetadata, DsjTableColumn[] aColumns)
     {
-        // -1 is the documented "unknown" sentinel (DsjTable defaults to it and DsjTableWriter
-        // keys every rowCount decision on it). An absent or malformed "records" member must reach
-        // the model as "unknown", never as a fabricated claim of 0 records.
+        // -1 is the documented "unknown" sentinel and DsjTable defaults to it. An absent or
+        // malformed "records" member must reach the model as "unknown", never as a fabricated
+        // claim of 0 records — that part is unchanged and is why the sentinel still exists.
+        //
+        // ⚠⚠ Corrected 2026-09-14 (Q26): this comment used to add "and DsjTableWriter keys every
+        // rowCount decision on it". That is now the opposite of the truth — the writer REFUSES
+        // -1, because `records` is a Required member of the spec and omitting it wrote a knowingly
+        // non-conformant file. So a table parsed from a file that lacks `records` can no longer be
+        // handed straight back to DsjTableWriter: the caller must supply the real count.
+        // ⚠ Audited when the ruling landed: all three production DsjTable.builder() sites (this
+        // parser, its OSS twin, and DsjTableExporter) set .records(...), and the exporter derives
+        // it from the live table, so no shipped path is affected. What is affected is a direct
+        // parser→writer pass-through of a non-conformant file — including one this product itself
+        // wrote before the writer became strict.
         long recordCount = -1;
 
         Object recs = aMetadata.get("records");
@@ -735,7 +771,7 @@ public class DataSetJsonTableParser
                     // otherwise leave the unwritten columns holding stale values from a reused
                     // slice buffer, indistinguishable from real data.
                     String msg = MessageFormat.format(
-                            "Not enough values in row {0}, expected: {1} found: {2}.", aArrayIndex,
+                            "Not enough values in row {0}, expected: {1} found: {2}.", aRowIndex,
                             aSetters.length, colIdx);
                     throw new IOException(msg);
                 }
@@ -745,13 +781,20 @@ public class DataSetJsonTableParser
             if (colIdx >= aSetters.length)
             {
                 String msg = MessageFormat.format(
-                        "Too many values in row {0}, expected: {1} found: {2}.", aArrayIndex,
+                        "Too many values in row {0}, expected: {1} found: {2}.", aRowIndex,
                         aSetters.length, colIdx + 1);
                 throw new IOException(msg);
             }
 
             parseValueToSetter(aParser, aSetters[colIdx], aArrayIndex);
         }
+
+        // Unreachable through any entry point of this class: Jackson raises JsonEOFException when
+        // input ends inside an array context rather than returning null from nextToken(). Kept as
+        // a hard stop so that a token source which DOES end silently can never hand a half-filled
+        // row to the slice handler, where the unwritten columns still hold the previous slice's
+        // values and are indistinguishable from real data.
+        throw new IOException("Unexpected end of input inside row " + aRowIndex + ".");
     }
 
 
@@ -800,7 +843,9 @@ public class DataSetJsonTableParser
 
             values[colIdx] = parseValueToObject(aParser);
         }
-        return values;
+
+        // See parseRow: unreachable with Jackson, and a hard stop rather than a silently short row.
+        throw new IOException("Unexpected end of input inside a row.");
     }
 
 
@@ -1024,8 +1069,15 @@ public class DataSetJsonTableParser
         {
             if (handlerRows != null && firstRow >= 0)
             {
-                handlerRows.nextRowsAvail(aTable, firstRow, (int) (rowIndex - firstRow) + 1,
-                        buffers[bufIdx]);
+                // The result is checked here exactly as it is at every other dispatch site: the
+                // handler contract says non-zero aborts, and a final slice that silently ignored
+                // it would report a clean parse for a run the consumer had rejected.
+                int res = handlerRows.nextRowsAvail(aTable, firstRow,
+                        (int) (rowIndex - firstRow) + 1, buffers[bufIdx]);
+                if (res != 0)
+                {
+                    throw new IOException("User aborted!");
+                }
             }
         }
         else

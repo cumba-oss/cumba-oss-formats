@@ -145,4 +145,8 @@ class DataSetJsonTableParserFileSourcesTest
         assertThrows(IOException.class, () -> parser.parseDataSet(missing));
     }
 
+    // testRoundTripJsonPrettyPrintedRead moved to
+    // net.cumba.cdisc.dsj.writer.DataSetJsonWriterRoundTripTest — it builds its fixture
+    // through DsjTableWriter, which lives in the writer module. The dependency runs
+    // writer -> reader, never the reverse.
 }

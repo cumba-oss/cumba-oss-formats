@@ -1,7 +1,6 @@
 package net.cumba.cdisc.dsj;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -177,10 +176,25 @@ public class DsjTable
         private static final DateTimeFormatter DSJ_TS = DateTimeFormatter.ofPattern(DSJ_TS_PATTERN)
                 .withZone(ZoneOffset.UTC);
 
+        /**
+         * Sets the creation timestamp from a legacy {@link Date}.
+         *
+         * <p>
+         * Rendered in UTC, exactly as the {@link Instant} overload is. It used to go through a bare
+         * {@code SimpleDateFormat}, which formats in the JVM's <em>default</em> time zone — so the
+         * same instant produced two different strings depending on which overload the caller
+         * happened to use, and on where the file was written. Dataset-JSON's
+         * {@code datasetJSONCreationDateTime} carries no offset, so a local-time rendering is not
+         * merely inconsistent but unreadable after the fact.
+         * </p>
+         *
+         * @param aDate
+         *            the creation timestamp.
+         * @return this builder.
+         */
         public DsjTableBuilder setDatasetJSONCreationDateTime(Date aDate)
         {
-            String val = new SimpleDateFormat(DSJ_TS_PATTERN).format(aDate);
-            return datasetJSONCreationDateTime(val);
+            return setDatasetJSONCreationDateTime(aDate.toInstant());
         }
 
 
@@ -190,10 +204,17 @@ public class DsjTable
         }
 
 
+        /**
+         * Sets the source-database modification timestamp from a legacy {@link Date}. Rendered in
+         * UTC — see {@link #setDatasetJSONCreationDateTime(Date)} for why.
+         *
+         * @param aDate
+         *            the modification timestamp.
+         * @return this builder.
+         */
         public DsjTableBuilder setDbLastModifiedDateTime(Date aDate)
         {
-            String val = new SimpleDateFormat(DSJ_TS_PATTERN).format(aDate);
-            return dbLastModifiedDateTime(val);
+            return setDbLastModifiedDateTime(aDate.toInstant());
         }
 
 

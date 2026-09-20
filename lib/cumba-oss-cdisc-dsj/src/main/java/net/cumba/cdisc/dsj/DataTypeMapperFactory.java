@@ -1,13 +1,16 @@
 package net.cumba.cdisc.dsj;
 
 import java.lang.System.Logger.Level;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAccessor;
 
 import lombok.CustomLog;
 import org.jspecify.annotations.Nullable;
@@ -19,6 +22,37 @@ import org.jspecify.annotations.Nullable;
 @CustomLog
 public class DataTypeMapperFactory
 {
+
+    /**
+     * ⭐⭐ <b>The single zone every temporal value in this file is anchored at — a COUPLING
+     * INVARIANT, not a preference (Q8).</b>
+     *
+     * <p>
+     * Dataset-JSON carries both timezone-NAIVE values ({@code 2025-06-15T10:30:00}) and
+     * offset-qualified ones ({@code 2025-06-15T10:30:00Z}, {@code …+02:00}). A naive value's wall
+     * clock is taken as written, i.e. anchored here; an offset-qualified value is converted to this
+     * same zone before its wall clock is read. <b>The two must be the same zone.</b> If they ever
+     * diverge, the two populations stop being comparable with each other — one file's
+     * {@code 10:30:00} and another's {@code 10:30:00Z} would land on different SAS datetimes — and
+     * that incomparability, not the old drop-to-missing, is the defect this ruling exists to
+     * prevent.
+     * </p>
+     *
+     * <p>
+     * ⚠ So: <b>anyone changing the anchor must change the normalisation target in the same
+     * commit</b>, which is why there is one constant rather than four literals.
+     * {@code DataTypeMapperFactoryZoneTest} pins the two together rather than each separately — a
+     * test per half would pass while the halves disagreed.
+     * </p>
+     *
+     * <p>
+     * UTC specifically, and not the host's zone: a stored SAS datetime must not depend on which
+     * machine read the file, or the same study would produce different values — and potentially
+     * different conformance verdicts — on a UTC server and a CET one. It is also what SAS's
+     * {@code B8601DZ} informat does.
+     * </p>
+     */
+    static final ZoneOffset STORAGE_ZONE = ZoneOffset.UTC;
 
     /**
      * The default mapper that does not perform any mapping.
@@ -142,7 +176,7 @@ public class DataTypeMapperFactory
     {
 
         private static final long SAS_EPOCH_SECONDS = LocalDateTime.of(1960, 1, 1, 0, 0, 0)
-                .toEpochSecond(ZoneOffset.UTC);
+                .toEpochSecond(STORAGE_ZONE);
 
         private static final DateTimeFormatter ISO_LDT = DateTimeFormatter
                 .ofPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -158,8 +192,17 @@ public class DataTypeMapperFactory
             {
                 String valStr = aValue.toString();
 
-                LocalDateTime localDateTime = LocalDateTime.parse(valStr);
-                long epochSeconds = localDateTime.toEpochSecond(ZoneOffset.UTC);
+                // Q8: ISO 8601 permits an offset, and the spec permits it here. Parsing with
+                // LocalDateTime.parse rejected one, and the catch below turned that into a MISSING
+                // value with no warning — so "2025-06-15T10:30:00Z" silently became no data at
+                // all. It is now read and converted to STORAGE_ZONE, which is where a naive value
+                // already sits, so the two are comparable.
+                TemporalAccessor parsed = DateTimeFormatter.ISO_DATE_TIME.parseBest(valStr,
+                        OffsetDateTime::from, LocalDateTime::from);
+                LocalDateTime localDateTime = parsed instanceof OffsetDateTime odt
+                        ? odt.withOffsetSameInstant(STORAGE_ZONE).toLocalDateTime()
+                        : LocalDateTime.from(parsed);
+                long epochSeconds = localDateTime.toEpochSecond(STORAGE_ZONE);
                 return Long.valueOf(epochSeconds - SAS_EPOCH_SECONDS);
             }
             catch (Exception _)
@@ -189,7 +232,7 @@ public class DataTypeMapperFactory
             {
                 long sasSeconds = Math.round(dn);
                 LocalDateTime ldt = LocalDateTime.ofEpochSecond(sasSeconds + SAS_EPOCH_SECONDS, 0,
-                        ZoneOffset.UTC);
+                        STORAGE_ZONE);
                 return ldt.format(ISO_LDT);
             }
             catch (Exception _)
@@ -222,7 +265,12 @@ public class DataTypeMapperFactory
             {
                 String valStr = aValue.toString();
 
-                LocalDate date = LocalDate.parse(valStr);
+                // Q8: ISO_DATE accepts an optional zone designator, ISO_LOCAL_DATE does not, and
+                // LocalDate.parse uses the latter — so "2025-06-15Z" was dropped to missing with
+                // no warning. A designator on a date carries no instant to convert (there is no
+                // time of day to shift), so the calendar date is taken as written; the point is
+                // that the date is KEPT rather than discarded over a suffix.
+                LocalDate date = LocalDate.parse(valStr, DateTimeFormatter.ISO_DATE);
                 return ChronoUnit.DAYS.between(SAS_EPOCH, date);
             }
             catch (Exception _)
@@ -287,9 +335,24 @@ public class DataTypeMapperFactory
                 // whole-second representation produced by mapValueFromTargetType. The old
                 // split(":")+parseInt path threw NumberFormatException on fractional seconds and
                 // silently returned null (data loss).
-                return (long) LocalTime.parse(aValue.toString()).toSecondOfDay();
+                //
+                // Q8: ISO 8601 permits an offset on a TIME too ("10:30:00Z", "10:30:00+02:00"),
+                // and ISO_LOCAL_TIME rejects one — the same silent drop as DateTimeMapper's, one
+                // type over. Offsets are normalised to the same STORAGE_ZONE, so a time and a
+                // datetime in the same file agree about what "the zone" means.
+                //
+                // ⚠ A second-of-day cannot carry a day wrap: 00:30+02:00 is 22:30 UTC on the
+                // PREVIOUS day, and an OffsetTime has no date to move. The wrapped clock time is
+                // therefore the only representable answer, and it is what SAS stores too — a SAS
+                // time is a second-of-day, not an instant.
+                TemporalAccessor parsed = DateTimeFormatter.ISO_TIME.parseBest(aValue.toString(),
+                        OffsetTime::from, LocalTime::from);
+                LocalTime localTime = parsed instanceof OffsetTime ot
+                        ? ot.withOffsetSameInstant(STORAGE_ZONE).toLocalTime()
+                        : LocalTime.from(parsed);
+                return (long) localTime.toSecondOfDay();
             }
-            catch (DateTimeParseException _)
+            catch (DateTimeException _)
             {
                 return null;
             }
@@ -402,7 +465,7 @@ public class DataTypeMapperFactory
             try
             {
                 long unixSeconds = Math.round(dn);
-                return LocalDateTime.ofEpochSecond(unixSeconds, 0, ZoneOffset.UTC).format(ISO_LDT);
+                return LocalDateTime.ofEpochSecond(unixSeconds, 0, STORAGE_ZONE).format(ISO_LDT);
             }
             catch (Exception _)
             {

@@ -187,6 +187,11 @@ class DataSetJsonTableParserEdgeCasesTest
         assertEquals("8.", table.get().getColumn(0).getDisplayFormat());
     }
 
+    // testRoundTripDsjc moved to
+    // net.cumba.cdisc.dsj.writer.DataSetJsonWriterRoundTripTest — it builds its fixture
+    // through DsjTableWriter, which lives in the writer module. The dependency runs
+    // writer -> reader, never the reverse.
+
 
     @Test
     void testParseManyRowsMultipleSlices() throws IOException

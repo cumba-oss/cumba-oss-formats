@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -219,7 +220,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
                 {
                     try
                     {
-                        totalRows.addAndGet(parseRangeChunk(ch, table, idx, start, end));
+                        totalRows.addAndGet(parseRangeChunk(ch, ml.table, idx, start, end));
                     }
                     catch (IOException ex)
                     {
@@ -259,7 +260,8 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
     }
 
 
-    private static ThreadFactory threadFactory(String prefix)
+    // Package-private for direct testing (see peekHeader).
+    static ThreadFactory threadFactory(String prefix)
     {
         AtomicInteger counter = new AtomicInteger();
         return r ->
@@ -299,7 +301,9 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
      * Two-byte header peek. Distinguishes plain JSON from gzip / zlib without consuming the
      * channel.
      */
-    private FormatHeader peekHeader(FileChannel ch) throws IOException
+    // Package-private rather than private: the header classification is exercised directly
+    // by the unit tests, which is the only way to reach the too-short and unknown-magic arms.
+    FormatHeader peekHeader(FileChannel ch) throws IOException
     {
         ByteBuffer hdr = ByteBuffer.allocate(2);
         int read = ch.read(hdr, 0L);
@@ -355,7 +359,9 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
      * needs to {@code skip} when it opens its own decompressor.
      * </p>
      */
-    private @Nullable MetadataLocator locateMetadata(JsonParser p) throws IOException
+    // Package-private for direct testing (see peekHeader).
+    @Nullable
+    MetadataLocator locateMetadata(JsonParser p) throws IOException
     {
         JsonToken token;
         Map<String, Object> metadata = new HashMap<>();
@@ -420,12 +426,16 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
      * {@code 0x0A}, so every chunk begins at the start of a row. UTF-8 continuation bytes never
      * produce {@code 0x0A}, so byte-level scanning is safe without decoding.
      */
-    private long[] splitToNewlineBoundaries(FileChannel ch, long start, long end, int n)
-        throws IOException
+    // Package-private for direct testing (see peekHeader).
+    long[] splitToNewlineBoundaries(FileChannel ch, long start, long end, int n) throws IOException
     {
+        // Default every boundary to `end`, so any boundary the loop below does not reach denotes
+        // an empty chunk. A bare `new long[]` would leave those interior boundaries at 0 — which
+        // is not merely a degenerate split but a wrong one, because a chunk running from 0 starts
+        // inside the metadata line rather than at a row.
         long[] b = new long[n + 1];
+        Arrays.fill(b, end);
         b[0] = start;
-        b[n] = end;
         if (n == 1 || end - start <= 0)
         {
             return b;
@@ -437,20 +447,16 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
             long candidate = start + span * i / n;
             if (candidate <= b[i - 1])
             {
-                // Tiny span — collapse remaining boundaries to end. Empty chunks are fine.
-                for (int j = i; j < n; j++)
-                {
-                    b[j] = end;
-                }
+                // Tiny span, or a line long enough to swallow this candidate: every remaining
+                // boundary keeps its `end` default, so the remaining chunks are empty. That costs
+                // parallelism, never rows.
                 return b;
             }
+            // Boundaries are monotonic by construction, so no repair pass is needed: the guard
+            // above leaves candidate > b[i-1], and scanForwardToNewline returns either a position
+            // strictly after candidate or `end`, which is itself >= every boundary already set.
+            // The former "if (b[i] < b[i-1])" repair could therefore never fire.
             b[i] = scanForwardToNewline(ch, candidate, end, probe);
-            // Ensure boundaries are monotonic. If two candidates landed in the same line this can
-            // collapse a chunk to empty — also fine.
-            if (b[i] < b[i - 1])
-            {
-                b[i] = b[i - 1];
-            }
         }
         return b;
     }
@@ -460,7 +466,8 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
      * Scans forward from {@code pos} (inclusive) for the first {@code 0x0A} byte and returns the
      * byte position immediately after it. Returns {@code end} if no newline is found.
      */
-    private long scanForwardToNewline(FileChannel ch, long pos, long end, ByteBuffer probe)
+    // Package-private for direct testing (see peekHeader).
+    long scanForwardToNewline(FileChannel ch, long pos, long end, ByteBuffer probe)
         throws IOException
     {
         while (pos < end)
@@ -568,7 +575,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
     /**
      * Two-byte header classification for the file-format peek.
      */
-    private enum FormatHeader
+    enum FormatHeader
     {
         PLAIN, GZIP, ZLIB, UNKNOWN;
     }
@@ -579,7 +586,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
      * {@code isNDJson} flag is {@code false} when the file uses the rows-inside-metadata layout
      * that this parser cannot parallelise.
      */
-    private static final class MetadataLocator
+    static final class MetadataLocator
     {
 
         final @Nullable DsjTable table;
@@ -614,7 +621,7 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
      * channel's main position is never modified, so multiple instances over the same channel can be
      * consumed concurrently from different threads.
      */
-    private static final class ChannelSliceInputStream extends InputStream
+    static final class ChannelSliceInputStream extends InputStream
     {
 
         private final FileChannel ch;
@@ -648,15 +655,19 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
         @Override
         public int read(byte[] buf, int off, int len) throws IOException
         {
+            if (len == 0)
+            {
+                // InputStream's contract: a zero-length request reads nothing and returns 0. The
+                // former code fell through and answered -1, which tells the caller "end of
+                // stream" for a probe that read nothing at all.
+                return 0;
+            }
             if (pos >= end)
             {
                 return -1;
             }
+            // len >= 1 and end - pos >= 1 here, so the slice length is always at least one byte.
             int allowed = (int) Math.min(len, end - pos);
-            if (allowed <= 0)
-            {
-                return -1;
-            }
             ByteBuffer bb = ByteBuffer.wrap(buf, off, allowed);
             int read = ch.read(bb, pos);
             if (read > 0)
