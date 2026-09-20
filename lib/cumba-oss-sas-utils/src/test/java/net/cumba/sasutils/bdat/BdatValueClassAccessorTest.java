@@ -97,14 +97,14 @@ class BdatValueClassAccessorTest
     void datasetBdatReportsTheIdentityFieldsOfThe32BitFixture()
     {
         assertEquals("CPS", ds32.getName());
-        assertEquals(Boolean.FALSE, ds32.get64Bit());
+        assertEquals(false, ds32.get64Bit());
         assertEquals(Platform.WINDOWS, ds32.getPlatform());
         assertEquals(ByteOrder.Little, ds32.getByteOrder());
         assertEquals(Long.valueOf(15), ds32.getColumnCount());
         assertEquals(Long.valueOf(15), ds32.getVariableCount());
         assertEquals(Long.valueOf(4733), ds32.getObservationCount());
         assertEquals(Long.valueOf(60), ds32.getPageCount());
-        assertEquals(Boolean.FALSE, ds32.getCompressed());
+        assertEquals(false, ds32.getCompressed());
         // BDAT carries no dataset-type field, so getType() is null by construction.
         assertNull(ds32.getType());
         assertEquals(LocalDateTime.parse("2008-05-13T15:32:52"), ds32.getCreated());
@@ -117,13 +117,13 @@ class BdatValueClassAccessorTest
     void datasetBdatReportsTheIdentityFieldsOfThe64BitBigEndianFixture()
     {
         assertEquals("EXTEND_YES", ds64.getName());
-        assertEquals(Boolean.TRUE, ds64.get64Bit());
+        assertEquals(true, ds64.get64Bit());
         assertEquals(Platform.UNIX, ds64.getPlatform());
         assertEquals(ByteOrder.Big, ds64.getByteOrder());
         assertEquals(Long.valueOf(11), ds64.getColumnCount());
         assertEquals(Long.valueOf(729), ds64.getObservationCount());
         assertEquals(Long.valueOf(2), ds64.getPageCount());
-        assertEquals(Boolean.FALSE, ds64.getCompressed());
+        assertEquals(false, ds64.getCompressed());
         assertEquals(LocalDateTime.parse("2016-10-04T23:07:19"), ds64.getCreated());
         assertEquals(LocalDateTime.parse("2016-10-04T23:07:19"), ds64.getModified());
         assertEquals(Optional.of("DATASTEP"), ds64.getCreatorProcess());
@@ -146,8 +146,8 @@ class BdatValueClassAccessorTest
     @Test
     void getHeader1And2ExposeTheParsedFileHeaders()
     {
-        assertEquals(Boolean.TRUE, ds32.getHeader1().getLittleEndian());
-        assertEquals(Boolean.FALSE, ds64.getHeader1().getLittleEndian());
+        assertEquals(true, ds32.getHeader1().getLittleEndian());
+        assertEquals(false, ds64.getHeader1().getLittleEndian());
         assertEquals("CPS", ds32.getHeader2().getDatasetName());
         assertEquals("DATA", ds32.getHeader2().getFileType());
         // Header2.platform is the raw code behind getPlatform(): "2" = Windows, "1" = UNIX.
@@ -311,14 +311,14 @@ class BdatValueClassAccessorTest
     void header1ReportsEndiannessAndWordSizeForBothFixtures()
     {
         Header1 little = ds32.getHeader1();
-        assertEquals(Boolean.TRUE, little.getLittleEndian());
+        assertEquals(true, little.getLittleEndian());
         assertEquals(ByteOrder.Little, little.getByteOrder());
-        assertEquals(Boolean.FALSE, little.get64Bit());
+        assertEquals(false, little.get64Bit());
 
         Header1 big = ds64.getHeader1();
-        assertEquals(Boolean.FALSE, big.getLittleEndian());
+        assertEquals(false, big.getLittleEndian());
         assertEquals(ByteOrder.Big, big.getByteOrder());
-        assertEquals(Boolean.TRUE, big.get64Bit());
+        assertEquals(true, big.get64Bit());
     }
 
 
@@ -576,7 +576,7 @@ class BdatValueClassAccessorTest
         assertEquals(Long.valueOf(15), rs.getColumnCountP1());
         assertEquals(Long.valueOf(0), rs.getColumnCountP2());
         assertEquals(Long.valueOf(4733), rs.getRowCount());
-        assertEquals(Boolean.FALSE, rs.getCompressed());
+        assertEquals(false, rs.getCompressed());
         assertEquals(Integer.valueOf(1), rs.getUnknown10());
         assertEquals(Short.valueOf((short) 0), rs.getUnknown14());
         assertEquals(Short.valueOf((short) 0), rs.getUnknown15());
@@ -606,10 +606,10 @@ class BdatValueClassAccessorTest
     @Test
     void getCompressedIsTrueExactlyWhenACompressionMethodNameIsStored() throws IOException
     {
-        assertEquals(Boolean.FALSE, subHeader(ds32, RowSizeSubHeader.class).getCompressed());
+        assertEquals(false, subHeader(ds32, RowSizeSubHeader.class).getCompressed());
         DatasetBdat compressed = parse("int_only_25x52.sas7bdat");
-        assertEquals(Boolean.TRUE, subHeader(compressed, RowSizeSubHeader.class).getCompressed());
-        assertEquals(Boolean.TRUE, compressed.getCompressed());
+        assertEquals(true, subHeader(compressed, RowSizeSubHeader.class).getCompressed());
+        assertEquals(true, compressed.getCompressed());
     }
 
 }

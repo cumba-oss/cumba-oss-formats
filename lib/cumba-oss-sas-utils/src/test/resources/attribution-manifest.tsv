@@ -1,0 +1,82 @@
+# Third-party attribution manifest -- read by AttributionTest.
+# path (under src/main/java) <TAB> kind <TAB> marker that must appear in the file's leading
+# block comment.  kind: DERIVED | PORTED | PARTIAL | ORIGINAL | NOT_DERIVED.
+#
+# NOT_DERIVED is the explicit allow-list: P300's own code, no upstream notice required. It must
+# still be LISTED -- adding a source file with no row here FAILS the build, which is what stops
+# a new derived file slipping in unattributed.
+net/cumba/sasutils/Dataset.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/EncodingTableMap.java	PARTIAL	copied from EPAM's parso
+net/cumba/sasutils/Format.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/FormatType.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/Informat.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/InvalidFormatException.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/Justify.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/Library.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/Observation.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/Parser.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/PositionAwareInputStream.java	ORIGINAL	Added by P300 as part of this module
+net/cumba/sasutils/SasConstants.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/Variable.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/VariableType.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/BdatPageProducer.java	ORIGINAL	Added by P300 as part of this module
+net/cumba/sasutils/bdat/ColumnAttributes.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/ColumnAttributesSubHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/ColumnName.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/ColumnNamesSubHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/ColumnSizeSubHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/CompressionAlgorithm.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/CompressionType.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/Compressor.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/DatasetBdat.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/FormatAndLabelSubHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/Header1.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/Header2.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/Header3.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/Header4.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/LibraryBdat.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/ObservationIteratorBdat.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/ObservationIteratorBdat2.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/Page.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/PageDataExtractor.java	ORIGINAL	Added by P300 as part of this module
+net/cumba/sasutils/bdat/PageHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/PageType.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/ParserBdat.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/Platform.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/RdcCompressor.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/RleCompressor.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/RowSizeSubHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/SeekableByteArrayInputStream.java	ORIGINAL	Added by P300 as part of this module
+net/cumba/sasutils/bdat/SubHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/SubHeaderCategory.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/SubHeaderPointer.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/SubHeaderSignature.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/TextSubHeader.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/VariableBdat.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x32/ColumnAttributes32.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x32/ColumnSizeSubHeader32.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x32/FormatAndLabelSubHeader32.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x32/Header332.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x32/PageHeader32.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x32/RowSizeSubHeader32.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x32/SubHeaderPointer32.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x64/ColumnAttributes64.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x64/ColumnSizeSubHeader64.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x64/FormatAndLabelSubHeader64.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x64/Header364.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x64/PageHeader64.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x64/RowSizeSubHeader64.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/bdat/x64/SubHeaderPointer64.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/DatasetHeaderXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/DatasetXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/LibraryHeaderXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/LibraryXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/MissingValue.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/ObservationFrameReaderXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/ObservationIteratorXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/ParserXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/VariableXpt.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/VariableXpt136.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/VariableXpt140.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/XptConstants.java	DERIVED	Derived from theshoeshiner/sas-utils
+net/cumba/sasutils/xpt/XptInputStream.java	DERIVED	Derived from theshoeshiner/sas-utils
