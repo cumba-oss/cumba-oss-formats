@@ -10,3 +10,4 @@
 FILE	README.md
 FILE	LICENSE-APACHE-2.0.txt
 LICENSETUPLE	org.thshsh	sas-utils	unknown	Apache License, Version 2.0	https://www.apache.org/licenses/LICENSE-2.0
+LICENSETUPLE	com.epam	parso	2.0.14	Apache License, Version 2.0	https://www.apache.org/licenses/LICENSE-2.0

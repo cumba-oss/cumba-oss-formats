@@ -56,7 +56,11 @@ class AttributionTest
     private static final int MIN_SOURCES = 74;
 
     /** Floor on the {@code licenses.xml} tuples this module must declare. */
-    private static final int MIN_TUPLES = 1;
+    // ⭐ 1 -> 2, re-derived 2026-09-20. The parso tuple was wrongly dropped when this module's
+    // attribution was first ported: the reasoning was "no parso dependency and no parso module
+    // downstream", but EncodingTableMap.java ships here and its manifest row says PARTIAL,
+    // "copied from EPAM's parso". A DERIVATION carries the notice, not a dependency.
+    private static final int MIN_TUPLES = 2;
 
     /** Floor on module-level attribution files (README, LICENSE-*.txt). */
     private static final int MIN_FILES = 2;
