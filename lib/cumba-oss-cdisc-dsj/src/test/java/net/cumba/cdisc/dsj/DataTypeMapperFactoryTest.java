@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.logging.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -188,6 +189,58 @@ class DataTypeMapperFactoryTest
         IDataTypeMapper mapper = factory.getMapper(ColumnDataType.DECIMAL,
                 ColumnTargetDataType.DECIMAL);
         assertEquals(3.14, mapper.mapValueToTargetType("3.14"));
+    }
+
+
+    /**
+     * ⛔ DEFECT B, closed 2026-09-21. Dataset-JSON's {@code dataType} note makes a comma a legal
+     * thousands separator in a decimal carried as a string, and until this fix the strict path had
+     * NO comma handling — {@code Double.valueOf("1,234.5")} threw and the cell degraded to missing.
+     * The <b>conformant</b> file was the one that lost data.
+     */
+    @Test
+    void testDecimalMapperAcceptsAValidThousandSeparator()
+    {
+        IDataTypeMapper mapper = factory.getMapper(ColumnDataType.DECIMAL,
+                ColumnTargetDataType.DECIMAL);
+        assertEquals(1234.5, mapper.mapValueToTargetType("1,234.5"));
+        assertEquals(1234567.0, mapper.mapValueToTargetType("1,234,567"));
+        assertEquals(-1234.0, mapper.mapValueToTargetType("-1,234"));
+    }
+
+
+    /**
+     * ⛔ The other half of the same ruling: a comma that is NOT a valid thousands separator is a
+     * format violation and degrades to missing, exactly as any other unparseable value does. It is
+     * emphatically not read as a European decimal comma — {@code "1,5"} is neither 1.5 nor 15.0.
+     */
+    @Test
+    void testDecimalMapperRejectsAMisplacedThousandSeparator()
+    {
+        IDataTypeMapper mapper = factory.getMapper(ColumnDataType.DECIMAL,
+                ColumnTargetDataType.DECIMAL);
+        for (String malformed : new String[]
+        {
+                "1,5", "1,23", "1,2345", "1.234,5", "0,123", "1,234.5,6"
+        })
+        {
+            // ⛔⛔ THE NaN ASSERTION ALONE IS SELF-CONFIRMING, and review round 1 proved it: every
+            // one of these threw under the PRE-FIX code too, so the pre-existing catch already
+            // answered NaN for all six. Worse, deleting only the `withoutSeparators == null` branch
+            // leaves Double.valueOf(null) throwing NPE into that same catch -- still NaN, still
+            // green. ⇒ The OUTCOME cannot distinguish the branch; only the diagnostic can. So the
+            // scanner's own rejection message is what this test pins, and the assertion below is
+            // the only thing standing between that branch and zero coverage sensitivity.
+            try (LogCapture log = LogCapture.on(DataTypeMapperFactory.class))
+            {
+                Object result = mapper.mapValueToTargetType(malformed);
+                assertTrue(result instanceof Double, malformed);
+                assertTrue(Double.isNaN((Double) result), malformed + " must degrade to NaN");
+                assertTrue(log.logged(Level.FINER, "not a thousands"),
+                        malformed + " must be rejected BY THE SCANNER, not by a downstream throw: "
+                                + log.dump());
+            }
+        }
     }
 
 

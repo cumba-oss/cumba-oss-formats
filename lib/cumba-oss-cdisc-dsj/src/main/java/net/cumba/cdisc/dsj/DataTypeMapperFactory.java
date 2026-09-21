@@ -495,10 +495,27 @@ public class DataTypeMapperFactory
                 // map a null to Doube.NaN
                 return Double.NaN;
             }
+            // ⭐ Dataset-JSON's dataType note: "When a thousand separator is used in a decimal
+            // represented as string, the comma is used." Until 2026-09-21 this path had NO comma
+            // handling at all, so a spec-legal "1,234.5" threw and the cell degraded to missing --
+            // the conformant file was the one that lost data. ThousandSeparators judges the comma
+            // context only and leaves everything else to Double.valueOf, so the forms that parse
+            // today keep parsing. A misplaced comma is a FORMAT VIOLATION, not a value to guess
+            // at (owner, 2026-09-21), and degrades exactly as any other unparseable value does.
+            String raw = aValue.toString();
+            String withoutSeparators = ThousandSeparators.strip(raw);
+            if (withoutSeparators == null)
+            {
+                // Recorded at TRACE for the same reason the catch below is: a silently dropped
+                // value must not be entirely invisible.
+                LOGGER.log(Level.TRACE,
+                        "rejected a decimal whose comma is not a thousands" + " separator: " + raw);
+                return Double.NaN;
+            }
             try
             {
                 // try to parse the string into a Double.
-                return Double.valueOf(aValue.toString());
+                return Double.valueOf(withoutSeparators);
             }
             catch (Exception ex)
             {
