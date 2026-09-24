@@ -2,11 +2,11 @@ package net.cumba.cdisc.dsj;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 import lombok.Builder;
@@ -173,31 +173,38 @@ public class DsjTable
 
         private static final String DSJ_TS_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
+        // The override zone converts an Instant to its UTC wall-clock; a LocalDateTime carries no
+        // instant, so the formatter attaches the zone without changing its date or time.
         private static final DateTimeFormatter DSJ_TS = DateTimeFormatter.ofPattern(DSJ_TS_PATTERN)
                 .withZone(ZoneOffset.UTC);
 
         /**
-         * Sets the creation timestamp from a legacy {@link Date}.
+         * Sets the creation timestamp from a zone-free wall-clock value.
          *
          * <p>
-         * Rendered in UTC, exactly as the {@link Instant} overload is. It used to go through a bare
-         * {@code SimpleDateFormat}, which formats in the JVM's <em>default</em> time zone — so the
-         * same instant produced two different strings depending on which overload the caller
-         * happened to use, and on where the file was written. Dataset-JSON's
-         * {@code datasetJSONCreationDateTime} carries no offset, so a local-time rendering is not
-         * merely inconsistent but unreadable after the fact.
+         * Dataset-JSON's {@code datasetJSONCreationDateTime} carries no offset, and neither does a
+         * {@link LocalDateTime}: the value is written exactly as given, with no zone conversion.
+         * Sub-second precision is dropped, as for the {@link Instant} overload.
          * </p>
          *
-         * @param aDate
+         * @param aDateTime
          *            the creation timestamp.
          * @return this builder.
          */
-        public DsjTableBuilder setDatasetJSONCreationDateTime(Date aDate)
+        public DsjTableBuilder setDatasetJSONCreationDateTime(LocalDateTime aDateTime)
         {
-            return setDatasetJSONCreationDateTime(aDate.toInstant());
+            return datasetJSONCreationDateTime(DSJ_TS.format(aDateTime));
         }
 
 
+        /**
+         * Sets the creation timestamp from an instant, rendered in UTC. A local-time rendering
+         * would be unreadable after the fact, since the written value carries no offset.
+         *
+         * @param aInstant
+         *            the creation timestamp.
+         * @return this builder.
+         */
         public DsjTableBuilder setDatasetJSONCreationDateTime(Instant aInstant)
         {
             return datasetJSONCreationDateTime(DSJ_TS.format(aInstant));
@@ -205,19 +212,27 @@ public class DsjTable
 
 
         /**
-         * Sets the source-database modification timestamp from a legacy {@link Date}. Rendered in
-         * UTC — see {@link #setDatasetJSONCreationDateTime(Date)} for why.
+         * Sets the source-database modification timestamp from a zone-free wall-clock value,
+         * written as given — see {@link #setDatasetJSONCreationDateTime(LocalDateTime)}.
          *
-         * @param aDate
+         * @param aDateTime
          *            the modification timestamp.
          * @return this builder.
          */
-        public DsjTableBuilder setDbLastModifiedDateTime(Date aDate)
+        public DsjTableBuilder setDbLastModifiedDateTime(LocalDateTime aDateTime)
         {
-            return setDbLastModifiedDateTime(aDate.toInstant());
+            return dbLastModifiedDateTime(DSJ_TS.format(aDateTime));
         }
 
 
+        /**
+         * Sets the source-database modification timestamp from an instant, rendered in UTC — see
+         * {@link #setDatasetJSONCreationDateTime(Instant)}.
+         *
+         * @param aInstant
+         *            the modification timestamp.
+         * @return this builder.
+         */
         public DsjTableBuilder setDbLastModifiedDateTime(Instant aInstant)
         {
             return dbLastModifiedDateTime(DSJ_TS.format(aInstant));

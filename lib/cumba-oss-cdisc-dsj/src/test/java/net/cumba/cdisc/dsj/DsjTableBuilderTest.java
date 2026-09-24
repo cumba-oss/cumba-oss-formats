@@ -1,13 +1,12 @@
 package net.cumba.cdisc.dsj;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import org.junit.jupiter.api.Test;
@@ -15,8 +14,6 @@ import org.junit.jupiter.api.Test;
 /**
  * Additional tests for DsjTable.DsjTableBuilder methods.
  */
-// Test exercises legacy java.util.Date code paths in the production code.
-@SuppressWarnings("JavaUtilDate")
 class DsjTableBuilderTest
 {
 
@@ -38,18 +35,18 @@ class DsjTableBuilderTest
     @Test
     void testSetDatasetJSONCreationDateTime()
     {
-        Date date = new Date(0); // 1970-01-01T00:00:00 UTC
-        DsjTable table = baseBuilder().setDatasetJSONCreationDateTime(date).build();
-        assertNotNull(table.getDatasetJSONCreationDateTime());
+        LocalDateTime dateTime = LocalDateTime.of(1970, 1, 1, 0, 0);
+        DsjTable table = baseBuilder().setDatasetJSONCreationDateTime(dateTime).build();
+        assertEquals("1970-01-01T00:00:00", table.getDatasetJSONCreationDateTime());
     }
 
 
     @Test
     void testSetDbLastModifiedDateTime()
     {
-        Date date = new Date(0);
-        DsjTable table = baseBuilder().setDbLastModifiedDateTime(date).build();
-        assertNotNull(table.getDbLastModifiedDateTime());
+        LocalDateTime dateTime = LocalDateTime.of(1970, 1, 1, 0, 0);
+        DsjTable table = baseBuilder().setDbLastModifiedDateTime(dateTime).build();
+        assertEquals("1970-01-01T00:00:00", table.getDbLastModifiedDateTime());
     }
 
 
@@ -145,28 +142,29 @@ class DsjTableBuilderTest
 
 
     @Test
-    void testDateAndInstantOverloadsAgreeRegardlessOfTheDefaultTimeZone()
+    void testLocalDateTimeAndInstantOverloadsAgreeRegardlessOfTheDefaultTimeZone()
     {
         // Dataset-JSON's creation timestamp carries no offset, so a value rendered in the writing
-        // machine's local zone cannot be read back unambiguously — and the Date and Instant
-        // overloads of the same setter used to disagree for exactly that reason. The default zone
+        // machine's local zone cannot be read back unambiguously. The LocalDateTime overload must
+        // write its wall-clock unchanged and the Instant overload must write UTC. The default zone
         // is forced to a non-UTC one here so the assertion cannot pass vacuously on a UTC box.
         TimeZone saved = TimeZone.getDefault();
         try
         {
             TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
             Instant when = Instant.parse("2025-06-15T10:30:00Z");
-            DsjTable fromDate = baseBuilder().setDatasetJSONCreationDateTime(Date.from(when))
-                    .setDbLastModifiedDateTime(Date.from(when)).build();
+            LocalDateTime wallClock = LocalDateTime.of(2025, 6, 15, 10, 30, 0, 999_000_000);
+            DsjTable fromLocal = baseBuilder().setDatasetJSONCreationDateTime(wallClock)
+                    .setDbLastModifiedDateTime(wallClock).build();
             DsjTable fromInstant = baseBuilder().setDatasetJSONCreationDateTime(when)
                     .setDbLastModifiedDateTime(when).build();
 
-            assertEquals("2025-06-15T10:30:00", fromDate.getDatasetJSONCreationDateTime());
-            assertEquals("2025-06-15T10:30:00", fromDate.getDbLastModifiedDateTime());
+            assertEquals("2025-06-15T10:30:00", fromLocal.getDatasetJSONCreationDateTime());
+            assertEquals("2025-06-15T10:30:00", fromLocal.getDbLastModifiedDateTime());
             assertEquals(fromInstant.getDatasetJSONCreationDateTime(),
-                    fromDate.getDatasetJSONCreationDateTime());
+                    fromLocal.getDatasetJSONCreationDateTime());
             assertEquals(fromInstant.getDbLastModifiedDateTime(),
-                    fromDate.getDbLastModifiedDateTime());
+                    fromLocal.getDbLastModifiedDateTime());
         }
         finally
         {
@@ -208,8 +206,8 @@ class DsjTableBuilderTest
         assertSame(b, b.clearColumns());
         assertSame(b, b.setDatasetJSONCreationDateTime(Instant.EPOCH));
         assertSame(b, b.setDbLastModifiedDateTime(Instant.EPOCH));
-        assertSame(b, b.setDatasetJSONCreationDateTime(new Date(0L)));
-        assertSame(b, b.setDbLastModifiedDateTime(new Date(0L)));
+        assertSame(b, b.setDatasetJSONCreationDateTime(LocalDateTime.of(1970, 1, 1, 0, 0)));
+        assertSame(b, b.setDbLastModifiedDateTime(LocalDateTime.of(1970, 1, 1, 0, 0)));
     }
 
 
