@@ -210,9 +210,12 @@ class PositionAwareInputStreamBoundaryTest
     @Test
     void closeClosesTheWrappedStream() throws IOException
     {
-        RecordingStream recording = new RecordingStream(new byte[4]);
-        new PositionAwareInputStream(recording).close();
-        assertEquals(1, recording.closeCalls);
+        try (RecordingStream recording = new RecordingStream(new byte[4]))
+        {
+            new PositionAwareInputStream(recording).close();
+            // Read before the try block closes the stream a second time.
+            assertEquals(1, recording.closeCalls);
+        }
     }
 
 

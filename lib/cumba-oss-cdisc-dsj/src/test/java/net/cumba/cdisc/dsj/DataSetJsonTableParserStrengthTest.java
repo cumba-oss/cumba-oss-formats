@@ -64,7 +64,7 @@ class DataSetJsonTableParserStrengthTest
         List<Integer> slices = new ArrayList<>();
         p.setHandlerRows((_, _, n, _) ->
         {
-            slices.add(Integer.valueOf(n));
+            slices.add(n);
             return 0;
         });
 
@@ -221,7 +221,28 @@ class DataSetJsonTableParserStrengthTest
         // is the realistic case. The format peek must not mistake that for a truncated file.
         String json = doc("\"records\":1,", COLUMN_X, "[[\"a\"]]");
         byte[] raw = json.getBytes(StandardCharsets.UTF_8);
-        InputStream dribbling = new InputStream()
+
+        DataSetJsonTableParser p = new DataSetJsonTableParser();
+        List<String> cells = new ArrayList<>();
+        p.setHandlerRows((_, _, _, data) ->
+        {
+            cells.add(data[0].getStringValue(0));
+            return 0;
+        });
+
+        try (InputStream dribbling = oneBytePerRead(raw))
+        {
+            p.parseDataSet(dribbling);
+        }
+
+        assertEquals(List.of("a"), cells);
+    }
+
+
+    /** A stream whose {@code read(byte[], int, int)} hands back one byte per call. */
+    private static InputStream oneBytePerRead(byte[] raw)
+    {
+        return new InputStream()
         {
 
             private int idx;
@@ -249,18 +270,6 @@ class DataSetJsonTableParserStrengthTest
                 return 1;
             }
         };
-
-        DataSetJsonTableParser p = new DataSetJsonTableParser();
-        List<String> cells = new ArrayList<>();
-        p.setHandlerRows((_, _, _, data) ->
-        {
-            cells.add(data[0].getStringValue(0));
-            return 0;
-        });
-
-        p.parseDataSet(dribbling);
-
-        assertEquals(List.of("a"), cells);
     }
 
 

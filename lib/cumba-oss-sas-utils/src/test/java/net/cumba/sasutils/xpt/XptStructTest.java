@@ -116,7 +116,7 @@ class XptStructTest
         DatasetHeaderXpt h = new DatasetHeaderXpt();
         h.variableCountString = "0007";
         assertEquals("0007", h.getVariableCountString());
-        assertEquals(Integer.valueOf(7), h.getVariableCount());
+        assertEquals(7, h.getVariableCount());
     }
 
 

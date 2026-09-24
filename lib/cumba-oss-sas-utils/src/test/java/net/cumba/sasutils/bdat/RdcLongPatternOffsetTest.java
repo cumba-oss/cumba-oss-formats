@@ -66,10 +66,7 @@ class RdcLongPatternOffsetTest
         {
             expected[i] = (byte) i; // 0x00 .. 0x27
         }
-        for (int i = 0; i < 20; i++)
-        {
-            expected[40 + i] = expected[40 - 36 + i]; // 0x04 .. 0x17
-        }
+        System.arraycopy(expected, 40 - 36, expected, 40, 20); // 0x04 .. 0x17
         expected[60] = 0x7F;
 
         assertArrayEquals(expected, result);

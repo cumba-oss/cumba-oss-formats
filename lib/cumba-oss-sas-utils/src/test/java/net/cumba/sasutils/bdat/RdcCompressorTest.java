@@ -35,7 +35,7 @@ class RdcCompressorTest
         {
             if (flags[i] != 0)
             {
-                ctrl |= (1 << (15 - i));
+                ctrl |= 1 << (15 - i);
             }
         }
         byte[] row = new byte[2 + payload.length];
@@ -111,7 +111,7 @@ class RdcCompressorTest
         // Flags layout (16 bits): literal,literal,literal,literal,cmd,...
         // For the back-ref segment cmd=3 (short pattern). Control byte = (cmd<<4 | cnt)
         // = 0x31, extension byte = 0x00.
-        int[] flags = new int[]
+        int[] flags =
         {
                 0, 0, 0, 0, 1
         };
@@ -205,7 +205,7 @@ class RdcCompressorTest
         // encoding of a repeating multi-byte pattern and must replay bytes it has just written.
         // With System.arraycopy, bytes 3..14 of the copy came from the still-zero output buffer,
         // yielding "ABCABC" + 12 NULs (F-sas-01).
-        byte[] row = new byte[]
+        byte[] row =
         {
                 0x10, 0x00, 'A', 'B', 'C', (byte) 0xF0, 0x00
         };
@@ -218,7 +218,7 @@ class RdcCompressorTest
     void decompressRow_overlappingLongPattern_replaysPattern()
     {
         // Same literal seed; command 0x20 0x00 0x00: cmd = 2 (long pattern), ofs = 3, cnt = 16.
-        byte[] row = new byte[]
+        byte[] row =
         {
                 0x10, 0x00, 'A', 'B', 'C', 0x20, 0x00, 0x00
         };

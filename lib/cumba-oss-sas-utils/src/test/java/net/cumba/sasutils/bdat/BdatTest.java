@@ -24,7 +24,7 @@ class BdatTest extends TestUtils
     @Test
     void testNumeric1() throws IOException
     {
-        test(new TestFile(findFile("numeric1")));
+        assertFixture(new TestFile(findFile("numeric1")));
     }
 
 
@@ -46,133 +46,133 @@ class BdatTest extends TestUtils
     @Test
     void testDoubles1() throws IOException
     {
-        test(new TestFile(findFile("doubles")));
+        assertFixture(new TestFile(findFile("doubles")));
     }
 
 
     @Test
     void testDoubles2() throws IOException
     {
-        test(new TestFile(findFile("doubles2")));
+        assertFixture(new TestFile(findFile("doubles2")));
     }
 
 
     @Test
     void testNumeric64BigEndian() throws IOException
     {
-        test(new TestFile(findFile("64_numeric4")));
+        assertFixture(new TestFile(findFile("64_numeric4")));
     }
 
 
     @Test
     void testExtend1() throws IOException
     {
-        test(new TestFile(findFile("extend_no")));
+        assertFixture(new TestFile(findFile("extend_no")));
     }
 
 
     @Test
     void testExtend2() throws IOException
     {
-        test(new TestFile(findFile("extend_yes")));
+        assertFixture(new TestFile(findFile("extend_yes")));
     }
 
 
     @Test
     void testNumeric2() throws IOException
     {
-        test(new TestFile(findFile("numeric2")), false);
+        assertFixture(new TestFile(findFile("numeric2")), false);
     }
 
 
     @Test
     void testNumeric3() throws IOException
     {
-        test(new TestFile(findFile("numeric3")));
+        assertFixture(new TestFile(findFile("numeric3")));
     }
 
 
     @Test
     void testPercents() throws IOException
     {
-        test(new TestFile(findFile("percents")), true);
+        assertFixture(new TestFile(findFile("percents")), true);
     }
 
 
     @Test
     void fileWithLabel() throws IOException
     {
-        test(new TestFile(findFile("file_with_label")));
+        assertFixture(new TestFile(findFile("file_with_label")));
     }
 
 
     @Test
     void testCompDeleted() throws IOException
     {
-        test(new TestFile(findFile("comp_deleted")));
+        assertFixture(new TestFile(findFile("comp_deleted")));
     }
 
 
     @Test
     void testDeleted() throws IOException
     {
-        test(new TestFile(findFile("data_page_with_deleted")));
+        assertFixture(new TestFile(findFile("data_page_with_deleted")));
     }
 
 
     @Test
     void testMixed1() throws IOException
     {
-        test(new TestFile(findFile("mixed1")));
+        assertFixture(new TestFile(findFile("mixed1")));
     }
 
 
     @Test
     void testMixed3() throws IOException
     {
-        test(new TestFile(findFile("mixed3")));
+        assertFixture(new TestFile(findFile("mixed3")));
     }
 
 
     @Test
     void testMixed4() throws IOException
     {
-        test(new TestFile(findFile("mixed4")), false);
+        assertFixture(new TestFile(findFile("mixed4")), false);
     }
 
 
     @Test
     void testMixedMisc() throws IOException
     {
-        test(new TestFile(findFile("mix_data_misc")), false);
+        assertFixture(new TestFile(findFile("mix_data_misc")), false);
     }
 
 
     @Test
     void testMixedFormats() throws IOException
     {
-        test(new TestFile(findFile("mixed_formats")));
+        assertFixture(new TestFile(findFile("mixed_formats")));
     }
 
 
     @Test
     void testMixedFormats2() throws IOException
     {
-        test(new TestFile(findFile("mixed_formats2")));
+        assertFixture(new TestFile(findFile("mixed_formats2")));
     }
 
 
     @Test
     void testMixed2() throws IOException
     {
-        test(new TestFile(findFile("mixed2")), true);
+        assertFixture(new TestFile(findFile("mixed2")), true);
     }
 
 
     @Test
     void testDatasetWithTime() throws IOException
     {
-        test(new TestFile(findFile("time")));
+        assertFixture(new TestFile(findFile("time")));
     }
 
 
@@ -180,7 +180,7 @@ class BdatTest extends TestUtils
     void testDatasetNames() throws IOException
     {
         List<File> files = findFiles("");
-        List<String> datasetnames = new ArrayList<String>();
+        List<String> datasetnames = new ArrayList<>();
         for (File file : files)
         {
             try
@@ -242,7 +242,7 @@ class BdatTest extends TestUtils
                 }
             }
         }
-        if (files.size() == 0)
+        if (files.isEmpty())
         {
             throw new IllegalArgumentException("File with prefix: " + prefix + " not found");
         }

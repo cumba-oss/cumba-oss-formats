@@ -22,19 +22,19 @@ public abstract class TestUtils
     public abstract Library getLibrary(File file) throws IOException;
 
 
-    public Library testLibraryToCsv(File file) throws Exception
+    public Library assertLibraryToCsv(File file) throws Exception
     {
-        return testLibraryToCsv(file, null, null);
+        return assertLibraryToCsv(file, null, null);
     }
 
 
-    public Library testLibraryToCsv(File file, Long expectedRows, Integer expectedColumns)
+    public Library assertLibraryToCsv(File file, Long expectedRows, Integer expectedColumns)
         throws Exception
     {
         try
         {
             Library library = getLibrary(file);
-            testLibraryToCsv(library, file, expectedRows, expectedColumns);
+            assertLibraryToCsv(library, file, expectedRows, expectedColumns);
             return library;
         }
         catch (Exception e)
@@ -46,18 +46,18 @@ public abstract class TestUtils
     }
 
 
-    public void testLibraryToCsv(Library library, File file, Long expectedRows,
+    public void assertLibraryToCsv(Library library, File file, Long expectedRows,
             Integer expectedColumns)
         throws IOException
     {
         for (Dataset dataset : library.getDatasets())
         {
-            testDatasetToCsv(dataset, file, expectedRows, expectedColumns);
+            assertDatasetToCsv(dataset, file, expectedRows, expectedColumns);
         }
     }
 
 
-    public void testLibrarySingleDataset(Library library, File file, Long expectedRows,
+    public void assertLibrarySingleDataset(Library library, File file, Long expectedRows,
             Integer expectedColumns, boolean csv)
         throws IOException
     {
@@ -82,19 +82,25 @@ public abstract class TestUtils
                 Assertions.assertEquals(expectedRows, live);
             }
         }
-        catch (UnsupportedOperationException _)
+        catch (UnsupportedOperationException ignored)
         {
             // Row count is optional; some providers don't expose it without iterating.
         }
 
         if (csv)
         {
-            testDatasetToCsv(dataset, file, expectedRows, expectedColumns);
+            assertDatasetToCsv(dataset, file, expectedRows, expectedColumns);
+        }
+        else if (expectedColumns != null)
+        {
+            // Without the CSV pass the column count is still checkable from the metadata.
+            Assertions.assertEquals(expectedColumns, dataset.getVariables().size(),
+                    "Expected " + expectedColumns + " columns in metadata");
         }
     }
 
 
-    public void testDatasetToCsv(Dataset dataset, File file, Long expectedRows,
+    public void assertDatasetToCsv(Dataset dataset, File file, Long expectedRows,
             Integer expectedColumns)
         throws IOException
     {
@@ -159,16 +165,16 @@ public abstract class TestUtils
     }
 
 
-    public void test(TestFile test) throws IOException
+    public void assertFixture(TestFile test) throws IOException
     {
-        test(test, true);
+        assertFixture(test, true);
     }
 
 
-    public void test(TestFile test, boolean csv) throws IOException
+    public void assertFixture(TestFile test, boolean csv) throws IOException
     {
         Library library = getLibrary(test.file);
-        testLibrarySingleDataset(library, test.file, test.rows, test.columns, csv);
+        assertLibrarySingleDataset(library, test.file, test.rows, test.columns, csv);
     }
 
 }

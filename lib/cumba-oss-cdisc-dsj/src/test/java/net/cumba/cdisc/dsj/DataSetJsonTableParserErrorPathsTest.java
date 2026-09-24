@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -489,7 +490,7 @@ class DataSetJsonTableParserErrorPathsTest
                 + "\"rows\":[[true],[false]]" + "}";
 
         DataSetJsonTableParser p = parser();
-        java.util.List<Object> seen = new java.util.ArrayList<>();
+        List<Object> seen = new ArrayList<>();
         p.setHandlerMetadata(_ -> 0);
         p.setHandlerRows((_, _, n, buf) ->
         {
@@ -551,7 +552,7 @@ class DataSetJsonTableParserErrorPathsTest
 
         p.parseDataSet(bytes(json));
 
-        assertEquals(true, missing[0]);
+        assertTrue(missing[0]);
     }
 
     // --- Default record count from metadata records=missing ---

@@ -85,12 +85,9 @@ class EncodingTableMapTest
     void reverseLookup_resolvesCanonicalNames()
     {
         // The reverse map keys are lowercased. Verify a representative sample.
-        assertEquals(Byte.valueOf((byte) 0x14),
-                EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("utf-8"));
-        assertEquals(Byte.valueOf((byte) 0x1D),
-                EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("iso-8859-1"));
-        assertEquals(Byte.valueOf((byte) 0x8A),
-                EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("shift_jis"));
+        assertEquals((byte) 0x14, EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("utf-8"));
+        assertEquals((byte) 0x1D, EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("iso-8859-1"));
+        assertEquals((byte) 0x8A, EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("shift_jis"));
     }
 
 
@@ -100,14 +97,11 @@ class EncodingTableMapTest
         // The reverse map is built by iterating entries sorted by Byte's natural
         // ordering (signed). For unsigned codes above 0x7F that means negative-valued
         // Byte instances sort first, so 0xAD (-83) beats 0x4E (78) for "IBM037".
-        assertEquals(Byte.valueOf((byte) 0xAD),
-                EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("ibm037"));
+        assertEquals((byte) 0xAD, EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("ibm037"));
         // 0xB7 (-73) and 0xC0 (-64) both map to "IBM01140"; -73 < -64 → 0xB7 wins.
-        assertEquals(Byte.valueOf((byte) 0xB7),
-                EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("ibm01140"));
+        assertEquals((byte) 0xB7, EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("ibm01140"));
         // 0x59 (89) and 0x67 (103) both map to "IBM-Thai"; both positive → 0x59 wins.
-        assertEquals(Byte.valueOf((byte) 0x59),
-                EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("ibm-thai"));
+        assertEquals((byte) 0x59, EncodingTableMap.SAS_ENCODING_FOR_CHARSET.get("ibm-thai"));
     }
 
 

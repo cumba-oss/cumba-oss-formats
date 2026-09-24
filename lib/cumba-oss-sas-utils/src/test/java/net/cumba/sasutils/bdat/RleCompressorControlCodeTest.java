@@ -145,12 +145,12 @@ class RleCompressorControlCodeTest
     void controlByte0x40_nibbleAndOperandAreNotInterchangeable() throws IOException
     {
         // nibble 1, operand 0 -> 256 + 0 + 18
-        byte[] withNibble = new byte[]
+        byte[] withNibble =
         {
                 0x41, 0x00, 0x5A
         };
         // nibble 0, operand 16 -> 0 + 16 + 18; both used to give 34
-        byte[] withOperand = new byte[]
+        byte[] withOperand =
         {
                 0x40, 0x10, 0x5A
         };

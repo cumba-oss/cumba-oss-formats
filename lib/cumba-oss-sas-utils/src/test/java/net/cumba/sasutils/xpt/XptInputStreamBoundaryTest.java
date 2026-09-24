@@ -92,7 +92,7 @@ class XptInputStreamBoundaryTest
     {
         try (XptInputStream in = new XptInputStream(new NeverSkips(page("")), PAGE))
         {
-            in.read(new byte[7]);
+            assertEquals(7, in.read(new byte[7]));
             assertEquals(7, in.getPosition());
 
             assertTrue(in.nextPage(), "a jump was performed, so nextPage reports true");
@@ -110,7 +110,7 @@ class XptInputStreamBoundaryTest
         try (XptInputStream in = new XptInputStream(new ByteArrayInputStream(page("")), PAGE))
         {
             assertFalse(in.nextPage(), "already at a page start, so nothing to skip");
-            in.read(new byte[1]);
+            assertEquals(1, in.read(new byte[1]));
             assertTrue(in.nextPage(), "mid-page, so the remainder is skipped");
             assertEquals(PAGE, in.getPosition());
         }
@@ -138,7 +138,7 @@ class XptInputStreamBoundaryTest
         try (XptInputStream in = new XptInputStream(new ByteArrayInputStream(page("")), PAGE))
         {
             assertEquals(0, in.getPageStart());
-            in.read(new byte[PAGE + 5]);
+            assertEquals(PAGE + 5, in.read(new byte[PAGE + 5]));
             assertEquals(PAGE, in.getPageStart());
             assertEquals(5, in.getPagePosition());
         }
@@ -188,7 +188,7 @@ class XptInputStreamBoundaryTest
 
             // and the bytes are still there to be read
             byte[] first = new byte[XptConstants.HEADER_TAG.length()];
-            in.read(first);
+            assertEquals(first.length, in.read(first));
             assertEquals(XptConstants.HEADER_TAG, new String(first, StandardCharsets.US_ASCII));
         }
     }

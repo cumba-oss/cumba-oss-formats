@@ -55,8 +55,7 @@ class DataTypeMapperFactoryInverseGuardsTest
     {
         for (Double d : new Double[]
         {
-                Double.valueOf(Double.POSITIVE_INFINITY), Double.valueOf(Double.NEGATIVE_INFINITY),
-                Double.valueOf(Double.NaN)
+                Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN
         })
         {
             assertNull(sasDate().mapValueFromTargetType(d), () -> "SAS date " + d);
@@ -76,8 +75,8 @@ class DataTypeMapperFactoryInverseGuardsTest
     {
         // A value far outside the representable range must come back missing rather than as a
         // wrapped-around date: 1e15 days is roughly 2.7 billion years.
-        Double hugeDays = Double.valueOf(1.0e15d);
-        Double hugeSeconds = Double.valueOf(1.0e17d);
+        Double hugeDays = 1.0e15d;
+        Double hugeSeconds = 1.0e17d;
 
         assertNull(sasDate().mapValueFromTargetType(hugeDays));
         assertNull(sasDateTime().mapValueFromTargetType(hugeSeconds));

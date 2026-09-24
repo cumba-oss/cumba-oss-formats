@@ -15,7 +15,7 @@ class ObservationIteratorXptTest
     @Test
     void ibmToIeee_zero() throws IOException
     {
-        byte[] bytes = new byte[]
+        byte[] bytes =
         {
                 0, 0, 0, 0, 0, 0, 0, 0
         };
@@ -30,7 +30,7 @@ class ObservationIteratorXptTest
         // 0x80 with zero mantissa: sign bit set, exponent 0x00, mantissa 0
         // The code checks bytes[0] == 0x80 only when sign=0x8000000000000000 and mantissa==0
         // Actually bytes[0] == (byte) 0x80 is checked specifically
-        byte[] bytes = new byte[]
+        byte[] bytes =
         {
                 (byte) 0x80, 0, 0, 0, 0, 0, 0, 0
         };
@@ -44,7 +44,7 @@ class ObservationIteratorXptTest
     void ibmToIeee_missingDot() throws IOException
     {
         // '.' = 0x2E is the SAS missing value indicator
-        byte[] bytes = new byte[]
+        byte[] bytes =
         {
                 '.', 0, 0, 0, 0, 0, 0, 0
         };
@@ -57,7 +57,7 @@ class ObservationIteratorXptTest
     void ibmToIeee_missingA() throws IOException
     {
         // 'A' = tagged missing .A
-        byte[] bytes = new byte[]
+        byte[] bytes =
         {
                 'A', 0, 0, 0, 0, 0, 0, 0
         };
@@ -71,7 +71,7 @@ class ObservationIteratorXptTest
     {
         // IBM float for 1.0: exponent=65 (0x41), mantissa=0x10000000000000
         // 0x41 10 00 00 00 00 00 00
-        byte[] bytes = new byte[]
+        byte[] bytes =
         {
                 0x41, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         };
@@ -85,7 +85,7 @@ class ObservationIteratorXptTest
     void ibmToIeee_shortInput() throws IOException
     {
         // Test that shorter-than-8-byte input is padded
-        byte[] bytes = new byte[]
+        byte[] bytes =
         {
                 0x41, 0x10, 0x00, 0x00
         };
@@ -102,7 +102,7 @@ class ObservationIteratorXptTest
         // A zero mantissa with lead byte 0x01 is a byte sequence no SAS-written XPT file
         // contains. The codec must report it as a checked format failure the caller can attribute
         // to a file and a row, not an unchecked IllegalArgumentException (F-sas-11).
-        byte[] bytes = new byte[]
+        byte[] bytes =
         {
                 0x01, 0, 0, 0, 0, 0, 0, 0
         };

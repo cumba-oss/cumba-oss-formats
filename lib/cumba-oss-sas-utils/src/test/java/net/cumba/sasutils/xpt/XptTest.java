@@ -48,10 +48,10 @@ class XptTest extends TestUtils
         Library library = getLibrary(file);
 
         Dataset air = library.getDataset("AIR").get();
-        testDatasetToCsv(air, file, 144l, 2);
+        assertDatasetToCsv(air, file, 144l, 2);
 
         Dataset class1 = library.getDataset("CLASS1").get();
-        testDatasetToCsv(class1, file, 19l, 5);
+        assertDatasetToCsv(class1, file, 19l, 5);
 
     }
 
@@ -59,21 +59,21 @@ class XptTest extends TestUtils
     @Test
     void testSmall() throws Exception
     {
-        test(new TestFile(findFile("small")));
+        assertFixture(new TestFile(findFile("small")));
     }
 
 
     @Test
     void testNumeric() throws Exception
     {
-        test(new TestFile(findFile("numeric")));
+        assertFixture(new TestFile(findFile("numeric")));
     }
 
 
     @Test
     void testMixed() throws Exception
     {
-        test(new TestFile(findFile("mixed")));
+        assertFixture(new TestFile(findFile("mixed")));
     }
 
 
@@ -84,7 +84,7 @@ class XptTest extends TestUtils
         List<File> files = getAllFiles();
         for (File file : files)
         {
-            test(new TestFile(file));
+            assertFixture(new TestFile(file));
         }
     }
 
@@ -129,7 +129,7 @@ class XptTest extends TestUtils
     public List<File> getAllFiles()
     {
 
-        List<File> files = new ArrayList<File>();
+        List<File> files = new ArrayList<>();
         for (File f : folders)
         {
             if (f.exists() && f.listFiles() != null)
@@ -185,7 +185,7 @@ class XptTest extends TestUtils
         List<File> files = findFiles("large");
         for (File file : files)
         {
-            test(new TestFile(file));
+            assertFixture(new TestFile(file));
         }
     }
 

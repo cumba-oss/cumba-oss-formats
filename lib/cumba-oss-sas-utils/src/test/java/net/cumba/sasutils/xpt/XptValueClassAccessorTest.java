@@ -121,11 +121,11 @@ class XptValueClassAccessorTest
     {
         // Type id 1 -> NUMERIC (index 0), type id 2 -> CHARACTER (index 1).
         VariableXpt numeric = variable(air, "AIR");
-        assertEquals(Short.valueOf((short) 1), numeric.getVariableTypeId());
+        assertEquals((short) 1, numeric.getVariableTypeId());
         assertEquals(VariableType.NUMERIC, numeric.getType());
 
         VariableXpt character = variable(twoTables.getDatasets().get(1), "NAME");
-        assertEquals(Short.valueOf((short) 2), character.getVariableTypeId());
+        assertEquals((short) 2, character.getVariableTypeId());
         assertEquals(VariableType.CHARACTER, character.getType());
     }
 
@@ -150,14 +150,14 @@ class XptValueClassAccessorTest
         VariableXpt value = variable(air, "AIR");
 
         // Neither column was written with decimals or a justification override.
-        assertEquals(Short.valueOf((short) 0), date.getFormatDecimals());
-        assertEquals(Short.valueOf((short) 0), date.getFormatJustifyId());
-        assertEquals(Short.valueOf((short) 0), date.getInformatDecimals());
-        assertEquals(Short.valueOf((short) 0), date.getNameHash());
+        assertEquals((short) 0, date.getFormatDecimals());
+        assertEquals((short) 0, date.getFormatJustifyId());
+        assertEquals((short) 0, date.getInformatDecimals());
+        assertEquals((short) 0, date.getNameHash());
 
         // DATE occupies the first eight record bytes, so AIR starts at offset 8.
-        assertEquals(Integer.valueOf(0), date.getPosition());
-        assertEquals(Integer.valueOf(8), value.getPosition());
+        assertEquals(0, date.getPosition());
+        assertEquals(8, value.getPosition());
     }
 
 

@@ -382,8 +382,8 @@ class HeaderStructTest
         h.setAlign2((byte) 0);
         h.setLittleEndian(Boolean.TRUE);
 
-        assertEquals(Byte.valueOf((byte) 0), h.getAlign1());
-        assertEquals(Byte.valueOf((byte) 0), h.getAlign2());
+        assertEquals((byte) 0, h.getAlign1());
+        assertEquals((byte) 0, h.getAlign2());
         assertEquals(true, h.getLittleEndian());
         assertEquals(false, h.get64Bit());
         assertEquals(4, h.getIntegerLength());
@@ -751,7 +751,7 @@ class HeaderStructTest
         assertEquals((short) 0, sh.getUnknown24());
         assertEquals((short) 4, sh.getUnknown26());
         assertEquals((short) 1, sh.getUnknown27());
-        assertEquals(Byte.valueOf((byte) 0), sh.getUnknown28());
+        assertEquals((byte) 0, sh.getUnknown28());
         assertEquals(true, sh.getCompressed());
     }
 

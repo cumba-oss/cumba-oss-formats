@@ -39,7 +39,7 @@ class ColumnBufferObjectTest
     @Test
     void testSetNull()
     {
-        Object[] data = new Object[]
+        Object[] data =
         {
                 "not null"
         };

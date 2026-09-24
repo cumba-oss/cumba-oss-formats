@@ -17,7 +17,7 @@ class RleCompressorTest
     {
         // 0xC0 | 0x02 = repeat byte 3+2=5 times
         // next byte = 0x41 ('A')
-        byte[] row = new byte[]
+        byte[] row =
         {
                 (byte) 0xC2, 0x41
         };
@@ -44,7 +44,7 @@ class RleCompressorTest
     {
         byte controlByte = (byte) Integer.parseInt(controlByteHex, 16);
         byte fillByte = (byte) Integer.parseInt(fillByteHex, 16);
-        byte[] row = new byte[]
+        byte[] row =
         {
                 controlByte
         };
@@ -61,7 +61,7 @@ class RleCompressorTest
     void decompressRow_controlByte0x80_copyBytes() throws IOException
     {
         // 0x80 | 0x02 = copy endOfFirstByte + 1 + (0x80 - 0x80) = 2+1+0 = 3 bytes
-        byte[] row = new byte[]
+        byte[] row =
         {
                 (byte) 0x82, 0x01, 0x02, 0x03
         };
@@ -87,7 +87,7 @@ class RleCompressorTest
     {
         // A 0x00-family control byte (high nibble 0x1) as the last byte has no
         // follow-on length byte. Previously this silently left the result zero-padded.
-        byte[] row = new byte[]
+        byte[] row =
         {
                 0x10
         };
@@ -101,7 +101,7 @@ class RleCompressorTest
         // 0x8F encodes a copy of 15 + 1 = 16 bytes but only one source byte remains. Clamping
         // used to return "A" + 15 fabricated NUL bytes and report success (F-sas-02); SAS pads
         // character fields with 0x20, so the tail was not even a plausible blank.
-        byte[] row = new byte[]
+        byte[] row =
         {
                 (byte) 0x8F, 'A'
         };

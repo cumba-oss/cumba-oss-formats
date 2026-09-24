@@ -23,19 +23,27 @@ class LogConverterTest
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogConverterTest.class);
 
-    @SuppressWarnings(
-    {
-            "resource", "unused"
-    })
     @Test
     void test() throws URISyntaxException, IOException, DecoderException
     {
         List<byte[]> bytes = new ArrayList<>();
-        BufferedReader br = new BufferedReader(
-                new FileReader(new File(LogConverterTest.class.getResource("v8log.txt").toURI()),
-                        StandardCharsets.UTF_8));
-
         File outFile = new File(System.getProperty("projectBasedir"), "target/v8file.xpt");
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(new File(LogConverterTest.class.getResource("v8log.txt").toURI()),
+                        StandardCharsets.UTF_8)))
+        {
+            readAndConvert(br, bytes, outFile);
+        }
+
+        assertTrue(outFile.exists(), "Expected converted xpt file to be written");
+    }
+
+
+    // `num` only probes that the line starts with a record number.
+    @SuppressWarnings("unused")
+    private static void readAndConvert(BufferedReader br, List<byte[]> bytes, File outFile)
+        throws IOException, DecoderException
+    {
         String line;
         while ((line = br.readLine()) != null)
         {
@@ -68,22 +76,20 @@ class LogConverterTest
                     bytes.add(fullLine.getBytes(StandardCharsets.UTF_8));
                 }
             }
-            catch (NumberFormatException _)
+            catch (NumberFormatException ignored)
             {
                 // Ignore non-numeric header lines — only numbered data rows are processed.
             }
 
-            FileOutputStream fos = new FileOutputStream(outFile);
-
-            for (byte[] b : bytes)
+            try (FileOutputStream fos = new FileOutputStream(outFile))
             {
-                fos.write(b);
+                for (byte[] b : bytes)
+                {
+                    fos.write(b);
+                }
+                fos.flush();
             }
-            fos.flush();
-            fos.close();
         }
-
-        assertTrue(outFile.exists(), "Expected converted xpt file to be written");
     }
 
 }

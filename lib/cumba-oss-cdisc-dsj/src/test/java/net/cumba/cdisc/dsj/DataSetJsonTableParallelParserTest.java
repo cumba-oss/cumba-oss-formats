@@ -1,6 +1,7 @@
 package net.cumba.cdisc.dsj;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -118,7 +119,7 @@ class DataSetJsonTableParallelParserTest
         assertEquals("T", mref.get().getName());
         assertEquals(100, total.get());
         // All 3 chunk indices must have been used at least once.
-        assertTrue(perChunk.size() >= 1);
+        assertFalse(perChunk.isEmpty());
     }
 
 

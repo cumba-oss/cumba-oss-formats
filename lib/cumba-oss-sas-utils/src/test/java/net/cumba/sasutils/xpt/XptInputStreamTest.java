@@ -26,11 +26,12 @@ class XptInputStreamTest
                 return super.skip(Math.min(aN, 1L));
             }
         };
-        XptInputStream xis = new XptInputStream(capped, 80);
-
-        assertTrue(xis.nextPage(true));
-        assertEquals(0, xis.getPagePosition(), "must land on a page boundary");
-        assertEquals(80, xis.getPosition());
+        try (XptInputStream xis = new XptInputStream(capped, 80))
+        {
+            assertTrue(xis.nextPage(true));
+            assertEquals(0, xis.getPagePosition(), "must land on a page boundary");
+            assertEquals(80, xis.getPosition());
+        }
     }
 
 
@@ -41,11 +42,11 @@ class XptInputStreamTest
         XptInputStream xis = new XptInputStream(new ByteArrayInputStream(data), 80);
         assertEquals(0, xis.getPosition());
 
-        xis.read();
+        assertEquals(0, xis.read());
         assertEquals(1, xis.getPosition());
 
         byte[] buf = new byte[10];
-        xis.read(buf, 0, 10);
+        assertEquals(10, xis.read(buf, 0, 10));
         assertEquals(11, xis.getPosition());
         xis.close();
     }
@@ -61,13 +62,13 @@ class XptInputStreamTest
         assertEquals(0, xis.getPage());
 
         byte[] buf = new byte[20];
-        xis.read(buf);
+        assertEquals(20, xis.read(buf));
         assertEquals(20, xis.getPagePosition());
         assertEquals(0, xis.getPage());
 
         // Read to 80 bytes = page boundary
         byte[] buf2 = new byte[60];
-        xis.read(buf2);
+        assertEquals(60, xis.read(buf2));
         assertEquals(0, xis.getPagePosition());
         assertEquals(1, xis.getPage());
         xis.close();
@@ -81,7 +82,7 @@ class XptInputStreamTest
         XptInputStream xis = new XptInputStream(new ByteArrayInputStream(data), 80);
 
         byte[] buf = new byte[30];
-        xis.read(buf);
+        assertEquals(30, xis.read(buf));
         assertEquals(30, xis.getPosition());
 
         xis.nextPage();
@@ -98,7 +99,7 @@ class XptInputStreamTest
         XptInputStream xis = new XptInputStream(new ByteArrayInputStream(data), 80);
 
         byte[] buf = new byte[80];
-        xis.read(buf);
+        assertEquals(80, xis.read(buf));
         assertEquals(80, xis.getPosition());
 
         boolean skipped = xis.nextPage();
@@ -115,7 +116,7 @@ class XptInputStreamTest
         XptInputStream xis = new XptInputStream(new ByteArrayInputStream(data), 80);
 
         byte[] buf = new byte[80];
-        xis.read(buf);
+        assertEquals(80, xis.read(buf));
         assertEquals(80, xis.getPosition());
 
         boolean skipped = xis.nextPage(true);
@@ -132,11 +133,11 @@ class XptInputStreamTest
         XptInputStream xis = new XptInputStream(new ByteArrayInputStream(data), 80);
 
         byte[] buf = new byte[50];
-        xis.read(buf);
+        assertEquals(50, xis.read(buf));
         xis.mark(100);
 
         byte[] buf2 = new byte[30];
-        xis.read(buf2);
+        assertEquals(30, xis.read(buf2));
         assertEquals(80, xis.getPosition());
 
         xis.reset();

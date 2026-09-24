@@ -511,7 +511,7 @@ class DataTypeMapperFactoryTest
 
         assertEquals("2025-06-15", date.mapValueToTargetType("2025-06-15"));
         assertEquals("2025-06-15T10:30:00", dateTime.mapValueToTargetType("2025-06-15T10:30:00"));
-        assertEquals(Long.valueOf(42L), date.mapValueToTargetType(Long.valueOf(42L)));
+        assertEquals(42L, date.mapValueToTargetType(42L));
         assertNull(date.mapValueToTargetType(null));
         assertNull(dateTime.mapValueToTargetType(null));
     }

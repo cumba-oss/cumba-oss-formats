@@ -23,7 +23,7 @@ class DatasetTest
 
         private String type = "DATA";
 
-        private List<Variable> variables = new ArrayList<>();
+        private final List<Variable> variables = new ArrayList<>();
 
         public TestDataset(Library l)
         {

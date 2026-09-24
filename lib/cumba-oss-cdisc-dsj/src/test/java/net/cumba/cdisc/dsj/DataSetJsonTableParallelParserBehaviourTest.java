@@ -177,13 +177,13 @@ class DataSetJsonTableParallelParserBehaviourTest
         List<Integer> calls = Collections.synchronizedList(new ArrayList<>());
         p.setHandlerChunkRows((_, _, n, _) ->
         {
-            calls.add(Integer.valueOf(n));
+            calls.add(n);
             return 0;
         });
 
         p.parseDataSet(f);
 
-        assertEquals(List.of(Integer.valueOf(10)), calls);
+        assertEquals(List.of(10), calls);
     }
 
 
@@ -200,14 +200,13 @@ class DataSetJsonTableParallelParserBehaviourTest
         List<Integer> calls = Collections.synchronizedList(new ArrayList<>());
         p.setHandlerChunkRows((_, _, n, _) ->
         {
-            calls.add(Integer.valueOf(n));
+            calls.add(n);
             return 0;
         });
 
         p.parseDataSet(f);
 
-        assertEquals(List.of(Integer.valueOf(DataSetJsonTableParallelParser.CHUNK_BATCH_SIZE),
-                Integer.valueOf(1)), calls);
+        assertEquals(List.of(DataSetJsonTableParallelParser.CHUNK_BATCH_SIZE, 1), calls);
     }
 
 
@@ -226,7 +225,7 @@ class DataSetJsonTableParallelParserBehaviourTest
         List<Integer> calls = Collections.synchronizedList(new ArrayList<>());
         p.setHandlerChunkRows((_, _, n, _) ->
         {
-            calls.add(Integer.valueOf(n));
+            calls.add(n);
             return 0;
         });
 
@@ -234,7 +233,7 @@ class DataSetJsonTableParallelParserBehaviourTest
 
         assertFalse(calls.isEmpty(), "the rows must still have been delivered");
         assertEquals(2, calls.stream().mapToInt(Integer::intValue).sum());
-        assertTrue(calls.stream().noneMatch(n -> n.intValue() == 0),
+        assertTrue(calls.stream().noneMatch(n -> n == 0),
                 "an empty chunk must not call the handler: " + calls);
     }
 }

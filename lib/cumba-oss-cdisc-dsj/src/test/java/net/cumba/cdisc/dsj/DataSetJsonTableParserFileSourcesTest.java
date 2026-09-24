@@ -139,7 +139,7 @@ class DataSetJsonTableParserFileSourcesTest
                 Files.newOutputStream(aZip)))
         {
             zos.putNextEntry(new java.util.zip.ZipEntry("dm.json"));
-            zos.write(aJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            zos.write(aJson.getBytes(StandardCharsets.UTF_8));
             zos.closeEntry();
         }
     }

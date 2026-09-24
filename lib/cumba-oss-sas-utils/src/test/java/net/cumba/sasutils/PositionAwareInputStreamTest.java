@@ -34,7 +34,7 @@ class PositionAwareInputStreamTest
         PositionAwareInputStream pais = new PositionAwareInputStream(
                 new ByteArrayInputStream(data));
         byte[] buf = new byte[20];
-        pais.read(buf);
+        assertEquals(20, pais.read(buf));
         assertEquals(20, pais.getPosition());
         pais.close();
     }
@@ -47,7 +47,7 @@ class PositionAwareInputStreamTest
         PositionAwareInputStream pais = new PositionAwareInputStream(
                 new ByteArrayInputStream(data));
         byte[] buf = new byte[20];
-        pais.read(buf, 5, 10);
+        assertEquals(10, pais.read(buf, 5, 10));
         assertEquals(10, pais.getPosition());
         pais.close();
     }
@@ -96,11 +96,11 @@ class PositionAwareInputStreamTest
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         PositionAwareInputStream pais = new PositionAwareInputStream(bais);
 
-        pais.read(new byte[10]);
+        assertEquals(10, pais.read(new byte[10]));
         pais.mark(100);
         assertEquals(10, pais.getPosition());
 
-        pais.read(new byte[20]);
+        assertEquals(20, pais.read(new byte[20]));
         assertEquals(30, pais.getPosition());
 
         pais.reset();

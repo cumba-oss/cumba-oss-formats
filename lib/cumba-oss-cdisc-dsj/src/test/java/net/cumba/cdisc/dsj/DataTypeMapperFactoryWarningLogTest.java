@@ -43,7 +43,7 @@ class DataTypeMapperFactoryWarningLogTest
         try (LogCapture log = LogCapture.on(DataTypeMapperFactory.class))
         {
             IDataTypeMapper m = f.getMapper(ColumnDataType.STRING, ColumnTargetDataType.INTEGER);
-            assertEquals(Double.valueOf(3.5d), m.mapValueToTargetType("3.5"));
+            assertEquals(3.5d, m.mapValueToTargetType("3.5"));
             assertTrue(log.logged(Level.WARNING, "is not really supported!"), log.dump());
         }
     }
@@ -56,7 +56,7 @@ class DataTypeMapperFactoryWarningLogTest
         try (LogCapture log = LogCapture.on(DataTypeMapperFactory.class))
         {
             IDataTypeMapper m = f.getMapper(ColumnDataType.STRING, ColumnTargetDataType.DECIMAL);
-            assertEquals(Double.valueOf(1.25d), m.mapValueToTargetType("1.25"));
+            assertEquals(1.25d, m.mapValueToTargetType("1.25"));
             assertTrue(log.logged(Level.WARNING, "is not really supported!"), log.dump());
         }
     }
@@ -71,7 +71,7 @@ class DataTypeMapperFactoryWarningLogTest
         try (LogCapture log = LogCapture.on(DataTypeMapperFactory.class))
         {
             IDataTypeMapper m = f.getMapper(ColumnDataType.DECIMAL, ColumnTargetDataType.DECIMAL);
-            assertEquals(Double.valueOf(1.25d), m.mapValueToTargetType("1.25"));
+            assertEquals(1.25d, m.mapValueToTargetType("1.25"));
             assertTrue(log.records().isEmpty(), log.dump());
         }
     }
@@ -117,7 +117,7 @@ class DataTypeMapperFactoryWarningLogTest
         try (LogCapture log = LogCapture.on(DataTypeMapperFactory.class))
         {
             IDataTypeMapper m = f.getMapper(ColumnDataType.DECIMAL, ColumnTargetDataType.DECIMAL);
-            assertEquals(Double.valueOf(Double.NaN), m.mapValueToTargetType("not-a-number"));
+            assertEquals(Double.NaN, m.mapValueToTargetType("not-a-number"));
             // System.Logger.Level.TRACE maps onto java.util.logging FINER.
             assertEquals(1, log.records().size(), log.dump());
             assertEquals(Level.FINER, log.records().get(0).getLevel(), log.dump());

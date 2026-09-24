@@ -300,8 +300,8 @@ class BdatValueClassAccessorTest
         FormatAndLabelSubHeader labelled = variable(ds32, "WAGE").getFormatAndLabelSubHeader();
         assertEquals("earnings per hour", labelled.getLabel());
         // All of numeric1's label text lives in text subheader 0.
-        assertEquals(Short.valueOf((short) 0), labelled.getLabelIndex());
-        assertEquals(Short.valueOf((short) 17), labelled.getLabelLength());
+        assertEquals((short) 0, labelled.getLabelIndex());
+        assertEquals((short) 17, labelled.getLabelLength());
     }
 
     // ------------------------------------------------------------------- Header1
@@ -479,8 +479,8 @@ class BdatValueClassAccessorTest
         SubHeaderPointer32 b = pointer((byte) 0);
         SubHeaderPointer32 c = pointer((byte) 1);
 
-        assertEquals(Byte.valueOf((byte) 0), a.getCategoryId());
-        assertEquals(Byte.valueOf((byte) 1), c.getCategoryId());
+        assertEquals((byte) 0, a.getCategoryId());
+        assertEquals((byte) 1, c.getCategoryId());
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());
         assertNotEquals(a, c);
@@ -529,7 +529,7 @@ class BdatValueClassAccessorTest
     {
         VariableBdat wage = variable(ds32, "WAGE");
         assertEquals(Long.valueOf(0), wage.getOffset());
-        assertEquals(Integer.valueOf(8), wage.getLength());
+        assertEquals(8, wage.getLength());
         assertEquals("earnings per hour", wage.getLabel());
 
         // EDUC follows WAGE's 8 numeric bytes, so its record offset is 8.
@@ -577,14 +577,14 @@ class BdatValueClassAccessorTest
         assertEquals(Long.valueOf(0), rs.getColumnCountP2());
         assertEquals(Long.valueOf(4733), rs.getRowCount());
         assertEquals(false, rs.getCompressed());
-        assertEquals(Integer.valueOf(1), rs.getUnknown10());
-        assertEquals(Short.valueOf((short) 0), rs.getUnknown14());
-        assertEquals(Short.valueOf((short) 0), rs.getUnknown15());
-        assertEquals(Short.valueOf((short) 0), rs.getUnknown17());
-        assertEquals(Short.valueOf((short) 0), rs.getUnknown18());
-        assertEquals(Short.valueOf((short) 0), rs.getUnknown20());
-        assertEquals(Short.valueOf((short) 0), rs.getUnknown21());
-        assertEquals(Short.valueOf((short) 0), rs.getUnknown24());
+        assertEquals(1, rs.getUnknown10());
+        assertEquals((short) 0, rs.getUnknown14());
+        assertEquals((short) 0, rs.getUnknown15());
+        assertEquals((short) 0, rs.getUnknown17());
+        assertEquals((short) 0, rs.getUnknown18());
+        assertEquals((short) 0, rs.getUnknown20());
+        assertEquals((short) 0, rs.getUnknown21());
+        assertEquals((short) 0, rs.getUnknown24());
     }
 
 
@@ -599,7 +599,7 @@ class BdatValueClassAccessorTest
         assertEquals(Long.valueOf(0), rs.getColumnCountP2());
         assertEquals(Long.valueOf(0), rs.getDeletedRowCount());
         assertEquals(Long.valueOf(1), rs.getUnknown10());
-        assertEquals(Short.valueOf((short) 8), rs.getUnknown15());
+        assertEquals((short) 8, rs.getUnknown15());
     }
 
 

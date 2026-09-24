@@ -143,7 +143,7 @@ class PageHasObservationsTest
     void hasObservations_isTrueForAMetaPageCarryingCompressedRows()
     {
         Page page = page(0, (short) 0, oneCompressedRow());
-        assertEquals(Integer.valueOf(1), page.getHeaderObservationCount());
+        assertEquals(1, page.getHeaderObservationCount());
         assertTrue(page.hasObservations(), "a META page with a DATA subheader carries a row");
     }
 
