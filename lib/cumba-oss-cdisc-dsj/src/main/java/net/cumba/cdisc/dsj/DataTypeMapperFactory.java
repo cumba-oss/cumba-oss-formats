@@ -203,7 +203,7 @@ public class DataTypeMapperFactory
                         ? odt.withOffsetSameInstant(STORAGE_ZONE).toLocalDateTime()
                         : LocalDateTime.from(parsed);
                 long epochSeconds = localDateTime.toEpochSecond(STORAGE_ZONE);
-                return Long.valueOf(epochSeconds - SAS_EPOCH_SECONDS);
+                return epochSeconds - SAS_EPOCH_SECONDS;
             }
             catch (Exception _)
             {

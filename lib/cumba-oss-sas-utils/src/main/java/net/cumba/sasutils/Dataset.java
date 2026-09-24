@@ -138,6 +138,8 @@ public abstract class Dataset
     }
 
 
+    // The file is owned by the returned stream: its onClose handler closes it.
+    @SuppressWarnings("PMD.CloseResource")
     public Stream<Observation> streamObservations(File file) throws IOException
     {
         RandomAccessFile raf = new RandomAccessFile(file, "r");

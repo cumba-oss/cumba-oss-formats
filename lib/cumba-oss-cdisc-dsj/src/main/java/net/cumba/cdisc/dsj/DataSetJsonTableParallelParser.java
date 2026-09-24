@@ -246,16 +246,22 @@ public class DataSetJsonTableParallelParser extends DataSetJsonTableParser
         }
         catch (CompletionException ex)
         {
+            // Rethrow the worker's own exception; the join site's trace survives as a suppressed
+            // exception.
             Throwable cause = ex.getCause();
             if (cause instanceof IOException ioe)
             {
+                ioe.addSuppressed(ex);
                 throw ioe;
             }
             if (cause instanceof RuntimeException re)
             {
+                re.addSuppressed(ex);
                 throw re;
             }
-            throw new IOException(cause);
+            IOException wrapped = new IOException(cause);
+            wrapped.addSuppressed(ex);
+            throw wrapped;
         }
     }
 

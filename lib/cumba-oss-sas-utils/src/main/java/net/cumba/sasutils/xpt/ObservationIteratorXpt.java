@@ -44,7 +44,7 @@ public class ObservationIteratorXpt implements Iterator<Observation>
     // IBM numeric values are big endian unsigned longs
     public static final Struct<?> IBM = Struct.create(">Q");
 
-    protected int observationSize = 0;
+    protected int observationSize;
 
     protected byte[] buffer;
 

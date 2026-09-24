@@ -167,6 +167,8 @@ public class ParserBdat implements Parser
             byte[] pageBuffer = new byte[dataset.header3.pageSize];
             IOUtils.readFully(aStream, pageBuffer);
 
+            // The page keeps the stream as its buffer; it wraps a byte array and holds no resource.
+            @SuppressWarnings("PMD.CloseResource")
             SeekableByteArrayInputStream pageStream = new SeekableByteArrayInputStream(pageBuffer);
             page.pageBuffer = pageStream;
 
@@ -227,7 +229,7 @@ public class ParserBdat implements Parser
                     for (SubHeaderPointer pointer : page.getSubHeaderPointers())
                     {
 
-                        long seekTo = pointer.getPageOffset().longValue();
+                        long seekTo = pointer.getPageOffset();
 
                         LOGGER.trace("Processing subheader POINTER: {}", pointer);
 
@@ -246,8 +248,8 @@ public class ParserBdat implements Parser
                         if (type == null && dataset.getCompressed()
                                 && (pointer.getCompressionType() == CompressionType.COMPRESSED
                                         || (pointer.getCompressionType() == CompressionType.NONE
-                                                && pointer.getLength().longValue() == dataset
-                                                        .getRowLength()))
+                                                && Long.compare(pointer.getLength(),
+                                                        dataset.getRowLength()) == 0))
                                 && pointer.getCategory() == SubHeaderCategory.B)
                         {
                             // There are data sub headers in compressed files:
@@ -382,17 +384,17 @@ public class ParserBdat implements Parser
                 continue;
             }
 
-            long seekTo = pointer.getPageOffset().longValue();
+            long seekTo = pointer.getPageOffset();
             page.pageBuffer.seek(seekTo);
 
             Number signature = (Number) Struct.unpack(dataset.header1.getIntegerTokenType(),
                     dataset.getByteOrder(), page.pageBuffer);
             SubHeaderSignature type = SubHeaderSignature.fromId(signature.longValue());
 
-            if (type == null && dataset.getCompressed()
-                    && (pointer.getCompressionType() == CompressionType.COMPRESSED
-                            || (pointer.getCompressionType() == CompressionType.NONE
-                                    && pointer.getLength().longValue() == dataset.getRowLength()))
+            if (type == null && dataset.getCompressed() && (pointer
+                    .getCompressionType() == CompressionType.COMPRESSED
+                    || (pointer.getCompressionType() == CompressionType.NONE
+                            && Long.compare(pointer.getLength(), dataset.getRowLength()) == 0))
                     && pointer.getCategory() == SubHeaderCategory.B)
             {
                 type = SubHeaderSignature.DATA;

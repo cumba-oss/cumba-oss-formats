@@ -10,6 +10,7 @@
 package net.cumba.sasutils.bdat;
 
 import java.io.IOException;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,10 +63,10 @@ public class RleCompressor implements Compressor
                 // arms below - the same command with an implied fill byte - already scale
                 // by 256, which is the tell.
                 int copyCounter = endOfFirstByte * 256 + (row[currentByteIndex + 1] & 0xFF);
-                for (int i = 0; i < copyCounter + 18; i++)
-                {
-                    resultByteArray[currentResultArrayIndex++] = row[currentByteIndex + 2];
-                }
+                int runLength = copyCounter + 18;
+                Arrays.fill(resultByteArray, currentResultArrayIndex,
+                        currentResultArrayIndex + runLength, row[currentByteIndex + 2]);
+                currentResultArrayIndex += runLength;
                 currentByteIndex += 2;
             }
             case 0x50 ->
@@ -118,10 +119,10 @@ public class RleCompressor implements Compressor
             }
             case 0xC0 ->
             {
-                for (int i = 0; i < endOfFirstByte + 3; i++)
-                {
-                    resultByteArray[currentResultArrayIndex++] = row[currentByteIndex + 1];
-                }
+                int runLength = endOfFirstByte + 3;
+                Arrays.fill(resultByteArray, currentResultArrayIndex,
+                        currentResultArrayIndex + runLength, row[currentByteIndex + 1]);
+                currentResultArrayIndex += runLength;
                 currentByteIndex++;
             }
             case 0xD0 ->

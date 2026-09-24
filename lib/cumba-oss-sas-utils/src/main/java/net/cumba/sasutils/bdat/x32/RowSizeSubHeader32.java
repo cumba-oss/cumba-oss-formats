@@ -126,7 +126,7 @@ public class RowSizeSubHeader32 extends RowSizeSubHeader
     @Override
     public Long getColumnCount()
     {
-        return columnCountP1.longValue() + columnCountP2.longValue();
+        return (long) columnCountP1 + columnCountP2;
     }
 
 

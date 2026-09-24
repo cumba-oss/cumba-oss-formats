@@ -222,7 +222,7 @@ public class DatasetBdat extends Dataset
 
     public Stream<TextSubHeader> getStringSubHeaders()
     {
-        return getPages().stream().map(Page::getSubHeaderPointers).flatMap(l -> l.stream())
+        return getPages().stream().map(Page::getSubHeaderPointers).flatMap(List::stream)
                 .filter(p -> p.getSignature() == SubHeaderSignature.STRING)
                 .map(p -> (TextSubHeader) p.getSubHeader());
     }
@@ -230,7 +230,7 @@ public class DatasetBdat extends Dataset
 
     public Stream<FormatAndLabelSubHeader> getFormatAndLabelSubHeaders()
     {
-        return getPages().stream().map(Page::getSubHeaderPointers).flatMap(l -> l.stream())
+        return getPages().stream().map(Page::getSubHeaderPointers).flatMap(List::stream)
                 .filter(p -> p.getSignature() == SubHeaderSignature.FORMAT_AND_LABEL)
                 .map(p -> (FormatAndLabelSubHeader) p.getSubHeader());
     }

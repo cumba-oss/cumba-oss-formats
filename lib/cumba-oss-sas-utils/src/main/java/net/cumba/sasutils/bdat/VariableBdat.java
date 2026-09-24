@@ -115,7 +115,7 @@ public class VariableBdat extends Variable
             // not set (define as not sorted)
             return 0;
         }
-        byte so = sov.byteValue();
+        byte so = sov;
 
         if (so == 0)
         {

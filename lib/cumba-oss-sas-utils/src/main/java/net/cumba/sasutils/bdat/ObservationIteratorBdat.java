@@ -286,10 +286,7 @@ public class ObservationIteratorBdat implements Iterator<Observation>
                 {
                     byte[] src = new byte[length];
                     IOUtils.readFully(rowStream, src);
-                    byte[] full = new byte[]
-                    {
-                            0, 0, 0, 0, 0, 0, 0, 0
-                    };
+                    byte[] full = new byte[8];
                     System.arraycopy(src, 0, full,
                             member.getByteOrder() == ByteOrder.Big ? 0 : 8 - length, length);
                     yield Struct.unpack(TokenType.Double, member.getByteOrder(), full);

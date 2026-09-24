@@ -67,6 +67,8 @@ public class PositionAwareInputStream extends InputStream
      * @throws IOException
      *             in case setting the new position is not possible.
      */
+    // The pattern variable borrows the wrapped stream; this stream's close() closes it.
+    @SuppressWarnings("PMD.CloseResource")
     public void seek(long aNewPosition) throws IOException
     {
         if (aNewPosition < position)

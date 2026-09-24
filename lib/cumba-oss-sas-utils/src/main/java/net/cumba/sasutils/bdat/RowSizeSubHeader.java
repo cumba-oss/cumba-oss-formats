@@ -422,7 +422,7 @@ public abstract class RowSizeSubHeader extends SubHeader
 
     public Long getColumnCount()
     {
-        return getColumnCountP1().longValue() + getColumnCountP2().longValue();
+        return getColumnCountP1() + getColumnCountP2();
     }
 
 }
