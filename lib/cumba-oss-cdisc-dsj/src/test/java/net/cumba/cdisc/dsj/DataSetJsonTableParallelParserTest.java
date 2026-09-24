@@ -118,8 +118,10 @@ class DataSetJsonTableParallelParserTest
         assertNotNull(mref.get());
         assertEquals("T", mref.get().getName());
         assertEquals(100, total.get());
-        // All 3 chunk indices must have been used at least once.
+        // The parallel path delivered rows through at least one chunk, and the per-chunk row
+        // counts account for every row exactly once.
         assertFalse(perChunk.isEmpty());
+        assertEquals(100, perChunk.values().stream().mapToInt(AtomicInteger::get).sum());
     }
 
 
