@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.System.Logger.Level;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -136,7 +137,14 @@ public class DataSetJsonTableParser
      */
     public void parseDataSet(@NonNull URL aURL) throws IOException
     {
-        try (InputStream in = aURL.openStream())
+        // Not aURL.openStream(): for a jar: URL (a file inside a zip) that leaves the archive in
+        // JarURLConnection's JVM-wide cache after close -- locked on Windows, and a replaced zip
+        // re-read with its OLD content. The rest of the stack uses URIHelper.openStream for this;
+        // this module deliberately has no net.cumba dependency, so the two lines are inline
+        // (PLAN-jar-url-stream-cache, owner Q1).
+        URLConnection connection = aURL.openConnection();
+        connection.setUseCaches(false);
+        try (InputStream in = connection.getInputStream())
         {
             parseDataSet(in);
         }

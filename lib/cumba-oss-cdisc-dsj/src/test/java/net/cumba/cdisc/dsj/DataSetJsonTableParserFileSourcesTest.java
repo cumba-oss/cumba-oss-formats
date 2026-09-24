@@ -112,6 +112,55 @@ class DataSetJsonTableParserFileSourcesTest
     }
 
 
+    /**
+     * A zip replaced during the session is read afresh through {@code parseDataSet(URL)}. With
+     * {@code URL.openStream()} a {@code jar:} URL left the archive in {@code JarURLConnection}'s
+     * JVM-wide cache after close, and the re-read returned the OLD dataset (measured on Linux; on
+     * Windows the {@code delete} below failed on the cached handle). PLAN-jar-url-stream-cache.
+     */
+    @Test
+    void testParseDataSetFromAReplacedZipReadsItAfresh(@TempDir Path tmp) throws IOException
+    {
+        Path zip = tmp.resolve("bundle.zip");
+        writeZip(zip, SIMPLE_JSON);
+        URL url = java.net.URI.create("jar:" + zip.toUri() + "!/dm.json").toURL();
+        assertEquals("DM", parseName(url));
+
+        Files.delete(zip);
+        writeZip(zip, SIMPLE_JSON.replace("\"name\":\"DM\"", "\"name\":\"AE\""));
+
+        assertEquals("AE", parseName(url), "the replaced zip must be read, not the cached one");
+    }
+
+
+    private static void writeZip(Path aZip, String aJson) throws IOException
+    {
+        try (java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(
+                Files.newOutputStream(aZip)))
+        {
+            zos.putNextEntry(new java.util.zip.ZipEntry("dm.json"));
+            zos.write(aJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            zos.closeEntry();
+        }
+    }
+
+
+    private static String parseName(URL aUrl) throws IOException
+    {
+        DataSetJsonTableParser parser = new DataSetJsonTableParser();
+        AtomicReference<DsjTable> table = new AtomicReference<>();
+        parser.setHandlerMetadata(t ->
+        {
+            table.set(t);
+            return 0;
+        });
+        parser.setHandlerRows((_, _, _, _) -> 0);
+        parser.parseDataSet(aUrl);
+        assertNotNull(table.get());
+        return table.get().getName();
+    }
+
+
     @Test
     void testParseDataSetFromGzipFile(@TempDir Path tmp) throws IOException
     {
