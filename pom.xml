@@ -741,7 +741,7 @@
                                     ⚠ Measured on this repo before the pin: the goal
                                     ran on every module and produced ZERO mutations and
                                     no reports, while the same command without
-                                    -DskipTests produced 1014 and 429 mutations.
+                                    -DskipTests produced hundreds of mutations.
                                 -->
                                 <excludedTestClasses>${pitest.excludedTestClasses}</excludedTestClasses>
                                 <excludedClasses>${pitest.excludedClasses}</excludedClasses>
