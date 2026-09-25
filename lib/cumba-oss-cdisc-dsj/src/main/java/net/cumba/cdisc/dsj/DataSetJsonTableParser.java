@@ -520,6 +520,26 @@ public class DataSetJsonTableParser
 
 
     /**
+     * The value of an integer token: a {@link Long}, or a {@link java.math.BigInteger} when it does
+     * not fit a long. {@code getLongValue()} throws for such a token, which failed the whole load
+     * over one oversized cell (PLAN-oss-dsj-malformed-boolean-cell); the caller decides what an
+     * oversized integer means for its column.
+     *
+     * @param aParser
+     *            the parser, positioned on a {@code VALUE_NUMBER_INT} token.
+     * @return the integer value.
+     * @throws IOException
+     *             if the token cannot be read.
+     */
+    private static Object integerValue(JsonParser aParser) throws IOException
+    {
+        return aParser.getNumberType() == JsonParser.NumberType.BIG_INTEGER
+                ? aParser.getBigIntegerValue()
+                : aParser.getLongValue();
+    }
+
+
+    /**
      * Parse the actual parser value as Object.<br/>
      * The parser will not be moved in this method.
      *
@@ -542,7 +562,7 @@ public class DataSetJsonTableParser
         {
         // possibly use String.intern already here?
         case VALUE_STRING -> aParser.getText();
-        case VALUE_NUMBER_INT -> aParser.getLongValue();
+        case VALUE_NUMBER_INT -> integerValue(aParser);
         case VALUE_NUMBER_FLOAT -> aParser.getDoubleValue();
         case VALUE_TRUE -> true;
         case VALUE_FALSE -> false;
@@ -880,7 +900,7 @@ public class DataSetJsonTableParser
         return switch (token)
         {
         case VALUE_STRING -> aParser.getText();
-        case VALUE_NUMBER_INT -> aParser.getLongValue();
+        case VALUE_NUMBER_INT -> integerValue(aParser);
         case VALUE_NUMBER_FLOAT -> aParser.getDoubleValue();
         case VALUE_TRUE -> true;
         case VALUE_FALSE -> false;
