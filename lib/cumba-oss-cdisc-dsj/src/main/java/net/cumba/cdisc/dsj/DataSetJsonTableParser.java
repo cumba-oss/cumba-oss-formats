@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.System.Logger.Level;
+import java.math.BigInteger;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -459,7 +460,7 @@ public class DataSetJsonTableParser
         Object recs = aMetadata.get("records");
         if (recs instanceof Number num)
         {
-            recordCount = num.longValue();
+            recordCount = exactLong(num, "records");
         }
         return DsjTable.builder()//
                 .datasetJSONCreationDateTime(required(aMetadata, "datasetJSONCreationDateTime"))//
@@ -477,6 +478,31 @@ public class DataSetJsonTableParser
                 .sourceSystem(buildSourceSystem(aMetadata.get("sourceSystem")))//
                 .columns(aColumns)//
                 .build();
+    }
+
+
+    /**
+     * A metadata count as a long, refusing one a long cannot hold. Since integer tokens beyond long
+     * range are read as {@link BigInteger} (for row cells, see {@link #integerValue}),
+     * {@code longValue()} would silently wrap such a count -- "records" to a negative number that
+     * disarms the declared-vs-parsed check.
+     *
+     * @param aValue
+     *            the parsed value.
+     * @param aKey
+     *            the metadata field, for the message.
+     * @return the value.
+     * @throws IllegalArgumentException
+     *             if the value does not fit a long.
+     */
+    private static long exactLong(Number aValue, String aKey)
+    {
+        if (aValue instanceof BigInteger)
+        {
+            throw new IllegalArgumentException(
+                    "Dataset-JSON field " + aKey + " is out of range: " + aValue);
+        }
+        return aValue.longValue();
     }
 
 
@@ -520,10 +546,10 @@ public class DataSetJsonTableParser
 
 
     /**
-     * The value of an integer token: a {@link Long}, or a {@link java.math.BigInteger} when it does
-     * not fit a long. {@code getLongValue()} throws for such a token, which failed the whole load
-     * over one oversized cell (PLAN-oss-dsj-malformed-boolean-cell); the caller decides what an
-     * oversized integer means for its column.
+     * The value of an integer token: a {@link Long}, or a {@link BigInteger} when it does not fit a
+     * long. {@code getLongValue()} throws for such a token, which failed the whole load over one
+     * oversized cell (PLAN-oss-dsj-malformed-boolean-cell); the caller decides what an oversized
+     * integer means for its column.
      *
      * @param aParser
      *            the parser, positioned on a {@code VALUE_NUMBER_INT} token.
@@ -717,12 +743,12 @@ public class DataSetJsonTableParser
         if (colObj.containsKey("length"))
         {
             Number length = (Number) colObj.get("length");
-            b.length(length.intValue());
+            b.length(Math.toIntExact(exactLong(length, "length")));
         }
         if (colObj.containsKey("keySequence"))
         {
             Number keySequence = (Number) colObj.get("keySequence");
-            b.keySequence(keySequence.intValue());
+            b.keySequence(Math.toIntExact(exactLong(keySequence, "keySequence")));
         }
         return b.build();
     }

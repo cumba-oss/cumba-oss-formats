@@ -1,6 +1,7 @@
 package net.cumba.cdisc.dsj;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,5 +41,26 @@ class DataSetJsonTableParserBigIntegerTest
 
         assertEquals(List.of(new BigInteger("99999999999999999999"), Long.MAX_VALUE,
                 new BigInteger("-9223372036854775809")), values);
+    }
+
+
+    @Test
+    void aRecordCountBeyondLongFailsInsteadOfWrapping()
+    {
+        String json = """
+                {"datasetJSONCreationDateTime":"2026-09-25T00:00:00","datasetJSONVersion":"1.1.0",
+                 "itemGroupOID":"IG.BIG","name":"BIG","label":"Big","records":18446744073709551611,
+                 "columns":[{"itemOID":"IT.V","name":"V","label":"V","dataType":"string"}],
+                 "rows":[["a"]]}
+                """;
+        DataSetJsonTableParser parser = new DataSetJsonTableParser();
+        parser.setHandlerMetadata(_ -> 0);
+        parser.setHandlerRow((_, _, _) -> 0);
+
+        // longValue() would wrap it to -5 and disarm the declared-vs-parsed row-count check.
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> parser
+                .parseDataSet(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))));
+        assertEquals("Dataset-JSON field records is out of range: 18446744073709551611",
+                ex.getMessage());
     }
 }
