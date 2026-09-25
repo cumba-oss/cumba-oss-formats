@@ -45,29 +45,12 @@
         <!--
             Quality floors for this module, set to (measured - 2) and NEVER lowered.
 
-            Measured 2026-09-11 on a COLD pitest run (history cleared first), after the
-            clinical-path test-strength pass:
-
-              420 mutants | KILLED 409 | TIMED_OUT 1 | SURVIVED 10 | NO_COVERAGE 0
-              mutation score   97.38 %  (KILLED only; pitest's headline reads 97.62 %
-                                         because it scores the one TIMED_OUT as a kill)
-              test strength    97.38 %  (KILLED only; same headline caveat)
-              pitest line cov  96.49 %  (824/854 lines of the mutated classes)
-              JaCoCo line cov  96.92 %  (786/811)
-
             The pitest floors are set against the KILLED-ONLY rates rather than pitest's
             headline: a floor met by a mutant that hangs has not been met by an assertion.
-            The single TIMED_OUT is genuine non-termination - the mutated thread factory
-            returns null, the worker pool never starts a task, and the parse never returns.
 
-            The ten residual survivors are all equivalent mutants: boundary flips whose
-            off-by-one case cannot occur. `read <= 0` / `n <= 0` guard channel reads that
-            return -1 or a positive count and never 0; `pos < end`, `pos >= end`,
-            `start >= end` and `remaining <= 0` all take the same route through an empty
-            slice when the two sides are equal; `rowsStart < 0` guards a char-backed parser,
-            which reports -1 and never 0; and `i < n` in the split loop would compute a
-            further boundary that already equals `end`. See
-            plans/PLAN-clinical-path-test-strength.md, wave 0, for the per-mutant argument.
+            The residual survivors are equivalent mutants: boundary flips whose off-by-one case
+            cannot occur. See plans/PLAN-clinical-path-test-strength.md, wave 0, for the
+            per-mutant argument.
 
             The floors are a ratchet: if a later change drops the module below one of them,
             the change is wrong or a test is missing - the floor is not.
