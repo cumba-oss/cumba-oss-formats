@@ -215,6 +215,10 @@ class BdatTest extends TestUtils
     }
 
 
+    /**
+     * The {@code .sas7bdat} fixtures whose name starts with {@code prefix}. Only that extension:
+     * the fixture directory also holds {@code NOTICE-test-fixtures.md}, which is not a library.
+     */
     public List<File> findFiles(String prefix)
     {
         List<File> files = new ArrayList<>();
@@ -224,7 +228,7 @@ class BdatTest extends TestUtils
         {
             for (File file : folder.listFiles())
             {
-                if (file.getName().startsWith(prefix))
+                if (file.getName().startsWith(prefix) && file.getName().endsWith(".sas7bdat"))
                 {
                     files.add(file);
                 }
@@ -236,7 +240,7 @@ class BdatTest extends TestUtils
         {
             for (File file : folder.listFiles())
             {
-                if (file.getName().startsWith(prefix))
+                if (file.getName().startsWith(prefix) && file.getName().endsWith(".sas7bdat"))
                 {
                     files.add(file);
                 }
