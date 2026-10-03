@@ -67,7 +67,7 @@
     </Match>
 
     <!-- The WriterBdat DM_CONVERT_CASE suppression is not carried here: this
-         distribution is read-only and ships no writer classes. -->
+         module ships no writer classes. -->
 
     <Match>
         <!-- SeekableByteArrayInputStream's aliasing is documented contract;
@@ -488,8 +488,8 @@
     </Match>
 
     <!-- The two Writer* EI_EXPOSE_REP2 suppressions (WriterBdat.out,
-         WriterXpt.out) are not carried here: this distribution is read-only
-         and ships no writer classes. -->
+         WriterXpt.out) are not carried here: this module ships no writer
+         classes. -->
 
     <Match>
         <!-- BCAT label keys are stored as IEEE doubles; equality compares

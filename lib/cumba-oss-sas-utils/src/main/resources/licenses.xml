@@ -3,7 +3,7 @@
     Third-party attribution for this module.
 
     A consumer aggregating every licenses.xml on the classpath picks this up without any
-    change on its side, so attribution is additive per module. The internal data browser's
+    change on its side, so attribution is additive per module. The cumba data browser's
     About dialog is one such consumer; this module does not depend on it.
 
     Two rules this file must keep:

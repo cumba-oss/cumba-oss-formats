@@ -46,20 +46,16 @@ class AttributionTest
 {
 
     /**
-     * Floor on {@code src/main/java} files. Lower only when files are genuinely removed.
-     *
-     * <p>
-     * RE-DERIVED for this repository rather than transplanted from the internal twin: this module
-     * is that one minus {@code bcat/Sas7bcatReader.java}, so 75 sources here against 76 there. Same
-     * convention on both sides -- the floor is the measured count minus one.
+     * Floor on {@code src/main/java} files: the measured count minus one. Lower only when files are
+     * genuinely removed. Each repository derives its own floor from its own count.
      */
     private static final int MIN_SOURCES = 74;
 
-    /** Floor on the {@code licenses.xml} tuples this module must declare. */
-    // ⭐ 1 -> 2, re-derived 2026-09-20. The parso tuple was wrongly dropped when this module's
-    // attribution was first ported: the reasoning was "no parso dependency and no parso module
-    // downstream", but EncodingTableMap.java ships here and its manifest row says PARTIAL,
-    // "copied from EPAM's parso". A DERIVATION carries the notice, not a dependency.
+    /**
+     * Floor on the {@code licenses.xml} tuples this module must declare. The parso tuple is
+     * required although the module has no parso dependency: {@code EncodingTableMap.java} is
+     * derived from EPAM's parso, and a derivation carries the notice, not a dependency.
+     */
     private static final int MIN_TUPLES = 2;
 
     /** Floor on module-level attribution files (README, LICENSE-*.txt). */

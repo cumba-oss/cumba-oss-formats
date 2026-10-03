@@ -96,4 +96,7 @@
         <Bug pattern="EI_EXPOSE_REP2" />
     </Match>
 
+    <!-- The two DsjTableWriter suppressions are not carried here: this module
+         ships no writer class. -->
+
 </FindBugsFilter>
