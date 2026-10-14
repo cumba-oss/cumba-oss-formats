@@ -26,10 +26,11 @@ Each module has its own `README.md` with coordinates and dependency detail.
 
 ```
 cumba-oss-commons     help · web-api · cdisc-library · bootstrap
+cumba-oss-formats     sas-utils · cdisc-dsj              (independent leaf)
+      ▲                                                  (datatable depends on both)
+cumba-oss-datatable   datatable · impl · cdisc-define · providers · manager-local · testkit · dictionary
       ▲
-cumba-oss-datatable   datatable · impl · cdisc-define · providers · manager-local
-      ▲
-cumba-oss-formats     sas-utils · cdisc-dsj             (independent leaf)
+cumba-oss-corej       the conformance engine, and the repositories built on it
 ```
 
 Dependencies run in one direction only. Build order is
