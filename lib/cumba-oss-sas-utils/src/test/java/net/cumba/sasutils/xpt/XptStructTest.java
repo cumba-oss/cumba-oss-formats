@@ -156,10 +156,6 @@ class XptStructTest
 
         assertEquals(VariableType.NUMERIC, v.getType());
 
-        // getFormat returns the inner FormatXpt.
-        VariableXpt.FormatXpt fmt = (VariableXpt.FormatXpt) v.getFormat();
-        assertNotNull(fmt);
-
         String s = v.toString();
         assertNotNull(s);
         assertTrue(s.contains("USUBJID"));
@@ -186,19 +182,4 @@ class XptStructTest
         assertThrows(IllegalArgumentException.class, v::getType);
     }
 
-
-    @Test
-    void variableXpt_formatXptType_resolvesFromFormatTypeString()
-    {
-        VariableXpt v = new VariableXpt();
-        v.setFormatTypeString("DATE");
-        VariableXpt.FormatXpt fmt = (VariableXpt.FormatXpt) v.getFormat();
-        // FormatType.fromString returns null for unknown values, so just assert that
-        // the call does not throw.
-        fmt.getType();
-        // When the format type string is null, getType returns null.
-        v.setFormatTypeString(null);
-        VariableXpt.FormatXpt fmt2 = (VariableXpt.FormatXpt) v.getFormat();
-        assertEquals(null, fmt2.getType());
-    }
 }

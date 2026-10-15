@@ -31,7 +31,4 @@ public abstract class Variable
 
     public abstract VariableType getType();
 
-
-    public abstract @Nullable Format getFormat();
-
 }

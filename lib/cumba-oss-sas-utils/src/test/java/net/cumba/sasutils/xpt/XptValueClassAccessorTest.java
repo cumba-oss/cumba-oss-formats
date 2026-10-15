@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import net.cumba.sasutils.FormatType;
 import net.cumba.sasutils.Observation;
 import net.cumba.sasutils.VariableType;
 import org.apache.commons.io.input.RandomAccessFileInputStream;
@@ -162,13 +161,11 @@ class XptValueClassAccessorTest
 
 
     @Test
-    void formatXptMapsTheStoredFormatNameToAFormatType()
+    void formatTypeStringIsTheStoredFormatName()
     {
-        // DATE carries the MONYY format; AIR carries none, which maps to NUMERIC.
+        // DATE carries the MONYY format; AIR carries none.
         assertEquals("MONYY", variable(air, "DATE").getFormatTypeString());
-        assertEquals(FormatType.MONYY, variable(air, "DATE").getFormat().getType());
         assertEquals("", variable(air, "AIR").getFormatTypeString());
-        assertEquals(FormatType.NUMERIC, variable(air, "AIR").getFormat().getType());
     }
 
     // ----------------------------------------------------- ObservationIteratorXpt

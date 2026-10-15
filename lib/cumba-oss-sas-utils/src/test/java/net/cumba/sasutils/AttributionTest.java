@@ -49,7 +49,7 @@ class AttributionTest
      * Floor on {@code src/main/java} files: the measured count minus one. Lower only when files are
      * genuinely removed. Each repository derives its own floor from its own count.
      */
-    private static final int MIN_SOURCES = 74;
+    private static final int MIN_SOURCES = 72;
 
     /**
      * Floor on the {@code licenses.xml} tuples this module must declare. The parso tuple is
@@ -62,7 +62,7 @@ class AttributionTest
     private static final int MIN_FILES = 2;
 
     /** Floor on manifest rows that actually carry an upstream notice (kind != NOT_DERIVED). */
-    private static final int MIN_ATTRIBUTED = 74;
+    private static final int MIN_ATTRIBUTED = 72;
 
     private static final String MANIFEST = "attribution-manifest.tsv";
 

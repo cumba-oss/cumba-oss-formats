@@ -480,13 +480,6 @@
         <Bug pattern="EI_EXPOSE_REP2" />
     </Match>
 
-    <Match>
-        <!-- Binary parsers: zero-copy by design on multi-GB SAS files. -->
-        <Class name="net.cumba.sasutils.xpt.VariableXpt$FormatXpt" />
-        <Field name="this$0" />
-        <Bug pattern="EI_EXPOSE_REP2" />
-    </Match>
-
     <!-- The two Writer* EI_EXPOSE_REP2 suppressions (WriterBdat.out,
          WriterXpt.out) are not carried here: this module ships no writer
          classes. -->

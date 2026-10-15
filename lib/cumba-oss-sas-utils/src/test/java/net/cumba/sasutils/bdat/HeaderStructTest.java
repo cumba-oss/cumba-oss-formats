@@ -499,8 +499,6 @@ class HeaderStructTest
         assertEquals(8, v.getLength());
         assertEquals(VariableType.NUMERIC, v.getType());
         assertSame(f, v.getFormatAndLabelSubHeader());
-        // getFormat is currently a stub returning null — exercise the path.
-        assertEquals(null, v.getFormat());
 
         // toString does not throw and includes sub-bean info.
         String s = v.toString();

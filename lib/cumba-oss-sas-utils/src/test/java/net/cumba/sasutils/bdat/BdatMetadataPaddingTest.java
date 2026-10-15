@@ -118,7 +118,7 @@ class BdatMetadataPaddingTest
             {
                 strings.add(String.valueOf(v.getName()));
                 strings.add(String.valueOf(v.getLabel()));
-                strings.add(String.valueOf(v.getFormat()));
+                strings.add(String.valueOf(v.getFormatAndLabelSubHeader().getFormat()));
             }
             for (String s : strings)
             {

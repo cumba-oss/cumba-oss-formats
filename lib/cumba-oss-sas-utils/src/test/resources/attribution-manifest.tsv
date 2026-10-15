@@ -7,8 +7,6 @@
 # a new derived file slipping in unattributed.
 net/cumba/sasutils/Dataset.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/EncodingTableMap.java	PARTIAL	copied from EPAM's parso
-net/cumba/sasutils/Format.java	DERIVED	Derived from theshoeshiner/sas-utils
-net/cumba/sasutils/FormatType.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/Informat.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/InvalidFormatException.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/Justify.java	DERIVED	Derived from theshoeshiner/sas-utils

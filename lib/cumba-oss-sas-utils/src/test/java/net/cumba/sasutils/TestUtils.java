@@ -131,7 +131,7 @@ public abstract class TestUtils
 
             dataset.streamObservations(file).forEach(obs ->
             {
-                List<Object> vals = new ArrayList<>(obs.getFormattedValues());
+                List<Object> vals = new ArrayList<>(obs.getValues().values());
 
                 if (expectedColumns != null)
                 {

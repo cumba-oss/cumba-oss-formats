@@ -9,7 +9,6 @@
  */
 package net.cumba.sasutils.bdat;
 
-import net.cumba.sasutils.Format;
 import net.cumba.sasutils.Variable;
 import net.cumba.sasutils.VariableType;
 import org.jspecify.annotations.Nullable;
@@ -77,14 +76,6 @@ public class VariableBdat extends Variable
     public FormatAndLabelSubHeader getFormatAndLabelSubHeader()
     {
         return formatAndLabel;
-    }
-
-
-    @Override
-    public @Nullable Format getFormat()
-    {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 

@@ -9,11 +9,8 @@
  */
 package net.cumba.sasutils.xpt;
 
-import net.cumba.sasutils.Format;
-import net.cumba.sasutils.FormatType;
 import net.cumba.sasutils.Variable;
 import net.cumba.sasutils.VariableType;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thshsh.struct.StructToken;
@@ -102,13 +99,6 @@ public class VariableXpt extends Variable
             throw new IllegalArgumentException("Invalid variable type id: " + variableTypeId);
         }
         return values[index];
-    }
-
-
-    @Override
-    public Format getFormat()
-    {
-        return new FormatXpt();
     }
 
 
@@ -316,18 +306,6 @@ public class VariableXpt extends Variable
         builder.append(getType());
         builder.append("]");
         return builder.toString();
-    }
-
-    public class FormatXpt extends Format
-    {
-
-        @Override
-        public @Nullable FormatType getType()
-        {
-            if (formatTypeString == null) return null;
-            return FormatType.fromString(formatTypeString);
-        }
-
     }
 
 }
