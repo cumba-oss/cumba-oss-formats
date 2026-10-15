@@ -30,5 +30,8 @@ read from the files' own headers.
 | `run_plain.sas7bdat` | `365e058ca789b47b3e3b9d980fc6e082` |
 | `make-sas-oracle.sas` | `4a174d046ca3fb52e51d60891c14b9ab` |
 
-Byte-identical copies live in the internal `cumba-parso` module (`src/test/resources/sas7bdat/sas-oracle/`)
-and in the open-source `cumba-oss-sas-utils` module.
+This directory exists in three byte-identical copies:
+
+- `cumba-sas-utils`: `src/test/resources/net/cumba/sasutils/bdat/sas-oracle/`
+- `cumba-parso`: `src/test/resources/sas7bdat/sas-oracle/`
+- `cumba-oss-sas-utils`: `src/test/resources/net/cumba/sasutils/bdat/sas-oracle/`

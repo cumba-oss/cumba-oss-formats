@@ -185,7 +185,7 @@ class RleCompressorControlCodeTest
      * (+4096) is unconfirmed by SAS output and kept as it was. 0x2n / 0x3n are refused (below).
      */
     @Test
-    void controlBytes0x00To0x10_copyALongLiteralRun() throws IOException
+    void controlByte0x01_copyALongLiteralRun() throws IOException
     {
         int literal = 5 + 64 + 1 * 256;
         // control 0x01, operand 0x05, then the literal, then a marker the cursor must reach
