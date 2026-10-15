@@ -330,9 +330,6 @@
 
     <profiles>
 
-        <!--                                                                                    -->
-        <!-- Profile dev is the development profile.                                            -->
-        <!-- Keeps debug symbols in compiled code and enables strict javac lint warnings.       -->
         <!--                                                                  -->
         <!--                                                                  -->
         <!-- PMD static analysis. Active by default (via property-based       -->
