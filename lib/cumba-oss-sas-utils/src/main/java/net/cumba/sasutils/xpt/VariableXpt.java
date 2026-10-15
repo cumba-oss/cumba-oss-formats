@@ -60,11 +60,13 @@ public class VariableXpt extends Variable
     @StructToken(order = 8)
     public Short formatDecimals;
 
+    // nfill[2] follows: TS-140 "UNUSED, FOR ALIGNMENT AND FUTURE". Writers leave zero bytes or
+    // ASCII blanks there (phuse-scripts send_1), so its 2 bytes are skipped, never checked.
     @StructToken(order = 9)
     @StructTokenSuffix(
     {
-            @StructToken(type = TokenType.Bytes, constant = "0000")
-    }) // 2 empty byte suffix
+            @StructToken(type = TokenType.Bytes, constant = "0000", validate = false)
+    })
     public Short formatJustifyId; // always zero
 
     @StructToken(order = 11, length = 8)
@@ -79,11 +81,14 @@ public class VariableXpt extends Variable
     /**
      * the byte position of this variable in the observation block
      */
+    // rest[52] follows: TS-140 "remaining fields are irrelevant". Writers leave zero bytes or ASCII
+    // blanks there, so its 52 bytes are skipped, never checked.
     @StructToken(order = 14)
     @StructTokenSuffix(
     {
             @StructToken(type = TokenType.Bytes,
-                    constant = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
+                    constant = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                    validate = false)
     })
     public Integer position;
 
