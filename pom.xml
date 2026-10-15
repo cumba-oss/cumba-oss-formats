@@ -331,7 +331,6 @@
     <profiles>
 
         <!--                                                                  -->
-        <!--                                                                  -->
         <!-- PMD static analysis. Active by default (via property-based       -->
         <!-- activation) so `mvn verify` always runs PMD and writes the       -->
         <!-- per-module report to target/pmd.xml. failOnViolation is driven   -->
