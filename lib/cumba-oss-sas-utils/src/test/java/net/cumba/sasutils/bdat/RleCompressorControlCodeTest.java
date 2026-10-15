@@ -2,14 +2,18 @@ package net.cumba.sasutils.bdat;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Covers the RLE control codes the existing {@link RleCompressorTest} does not reach: the three
- * long fills (0x5n / 0x6n / 0x7n), the long repeat (0x4n) and the long literal (0x0n-0x3n).
+ * long fills (0x5n / 0x6n / 0x7n), the long repeat (0x4n), the long literal (0x0n / 0x1n) and the
+ * refused 0x2n / 0x3n.
  * <p>
  * ⚠ <strong>Why a decompressor needs exact assertions.</strong> The result array starts life full
  * of zero bytes, so an opcode that writes nothing — or that advances the write cursor by the wrong
@@ -175,12 +179,13 @@ class RleCompressorControlCodeTest
 
 
     /**
-     * 0x0n-0x3n: a long literal of <code>operand + 64 + controlByte * 256</code> bytes copied
+     * 0x0n / 0x1n: a long literal of <code>operand + 64 + controlByte * 256</code> bytes copied
      * verbatim from the third byte on. The control byte is used <em>whole</em> here (not just its
-     * low nibble), so 0x01 contributes 256 to the length.
+     * low nibble), so 0x01 contributes 256 to the length. The SAS-written files confirm 0x0n; 0x1n
+     * (+4096) is unconfirmed by SAS output and kept as it was. 0x2n / 0x3n are refused (below).
      */
     @Test
-    void controlBytes0x00To0x30_copyALongLiteralRun() throws IOException
+    void controlBytes0x00To0x10_copyALongLiteralRun() throws IOException
     {
         int literal = 5 + 64 + 1 * 256;
         // control 0x01, operand 0x05, then the literal, then a marker the cursor must reach
@@ -254,6 +259,55 @@ class RleCompressorControlCodeTest
         {
                 0x7A, 0x7A, 0x7A, 0x20, 0x20, 0x20
         }, result);
+    }
+
+
+    /**
+     * 0x2n / 0x3n: refused as a format error naming the byte and its offset. SAS 9.4 writes neither
+     * (the {@code sas-oracle/} census in {@link RealSasCompressionTest}), and no reading of them is
+     * confirmed by SAS output, so decoding them by any guessed rule would be expecting input SAS
+     * does not write. A short literal comes first so the offset is not trivially 0.
+     */
+    @ParameterizedTest
+    @ValueSource(ints =
+    {
+            0x20, 0x23, 0x2F, 0x30, 0x3F
+    })
+    void controlBytes0x20And0x30_areRefusedAsAFormatError(int aControl)
+    {
+        byte[] row =
+        {
+                (byte) 0x82, 0x41, 0x42, 0x43, (byte) aControl, 0x00, 0x41, 0x42
+        };
+
+        IOException e = assertThrows(IOException.class, () -> compressor.decompressRow(64, row));
+
+        assertEquals("Unsupported RLE control byte 0x" + Integer.toHexString(aControl)
+                + " at position 4: SAS writes no 0x2n / 0x3n command", e.getMessage());
+    }
+
+
+    /**
+     * The old reading (a literal of <code>operand + 64 + controlByte * 256</code> bytes, the 0x0n
+     * arithmetic applied to the whole byte) decoded 0x20 silently whenever the row held 8256 more
+     * bytes. It must be refused there too, not only where that reading ran off the row.
+     */
+    @Test
+    void controlByte0x20_isRefusedWhereTheOldLongLiteralReadingFits()
+    {
+        int literal = 64 + 0x20 * 256;
+        byte[] row = new byte[2 + literal];
+        row[0] = 0x20;
+        for (int i = 0; i < literal; i++)
+        {
+            row[2 + i] = (byte) (i % 251);
+        }
+
+        IOException e = assertThrows(IOException.class,
+                () -> compressor.decompressRow(literal, row));
+
+        assertEquals("Unsupported RLE control byte 0x20 at position 0: SAS writes no 0x2n / 0x3n"
+                + " command", e.getMessage());
     }
 
 }

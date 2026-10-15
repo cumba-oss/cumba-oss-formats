@@ -34,8 +34,27 @@ public class RleCompressor implements Compressor
             int countOfBytesToCopy;
             switch (controlByte)
             {
-            case 0x30, 0x20, 0x10, 0x00 ->
+            case 0x30, 0x20 ->
             {
+                // Refused, not decoded (register Q4, owner ruling SO3 (c), 2026-10-15). SAS 9.4
+                // writes neither: in the SAS-written test files (sas-oracle/) every literal of
+                // 65..400 bytes is a 0x0n command, including 96..111, which a one-byte 0x2n copy
+                // could have encoded. No reading is confirmed by SAS output - this arm used to
+                // apply the 0x0n arithmetic to the whole byte (a literal of at least 8256 bytes),
+                // ReadStat reads 0x2n as a 96 + n copy with no operand byte, and nothing defines
+                // 0x3n - so a guessed decoding would be expecting input SAS does not write. The
+                // old reading threw an unchecked ArrayIndexOutOfBoundsException on an ordinary
+                // row and decoded silently on a row long enough to hold the copy.
+                throw new IOException("Unsupported RLE control byte 0x"
+                        + Integer.toHexString(row[currentByteIndex] & 0xFF) + " at position "
+                        + currentByteIndex + ": SAS writes no 0x2n / 0x3n command");
+            }
+            case 0x10, 0x00 ->
+            {
+                // 0x0n: a literal of operand + 64 + n * 256 bytes, the reading the SAS-written
+                // files confirm. 0x1n adds 4096 (the whole byte times 256); no SAS-written file
+                // confirms it yet, because the oracle rows are shorter than the 4160 bytes it
+                // needs - it is kept as it was, outside Q4.
                 if (currentByteIndex == length - 1)
                 {
                     throw new IOException("Truncated RLE control byte at position "
