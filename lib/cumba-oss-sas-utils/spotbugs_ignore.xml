@@ -488,7 +488,7 @@
         <!-- BCAT label keys are stored as IEEE doubles; equality compares
              the exact bit pattern read off disk against the codelist key. -->
         <Class name="net.cumba.sasutils.bcat.Sas7bcatReader" />
-        <Method name="parseValueLabels" />
+        <Method name="numericText" />
         <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
     </Match>
 
