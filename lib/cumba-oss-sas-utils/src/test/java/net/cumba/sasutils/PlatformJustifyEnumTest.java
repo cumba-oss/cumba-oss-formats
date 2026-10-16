@@ -2,10 +2,7 @@ package net.cumba.sasutils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import net.cumba.sasutils.bdat.Platform;
 import org.junit.jupiter.api.Test;
@@ -13,8 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
- * Covers the small {@link Platform}, {@link Justify} and {@link InvalidFormatException} helpers
- * that have no other tests.
+ * Covers the small {@link Platform} and {@link Justify} helpers that have no other tests.
  */
 // Tests assert ordinal stability — the call to .ordinal() is the test subject.
 @SuppressWarnings("EnumOrdinal")
@@ -67,64 +63,5 @@ class PlatformJustifyEnumTest
     void justify_valueOfRoundTrip(Justify j)
     {
         assertSame(j, Justify.valueOf(j.name()));
-    }
-
-
-    @Test
-    void invalidFormatException_defaultConstructorHasNoMessage()
-    {
-        InvalidFormatException ex = new InvalidFormatException();
-        assertNull(ex.getMessage());
-        assertNull(ex.getCause());
-    }
-
-
-    @Test
-    void invalidFormatException_messageConstructor()
-    {
-        InvalidFormatException ex = new InvalidFormatException("bad format");
-        assertEquals("bad format", ex.getMessage());
-        assertNull(ex.getCause());
-    }
-
-
-    @Test
-    void invalidFormatException_messageAndCauseConstructor()
-    {
-        Throwable cause = new IllegalStateException("root");
-        InvalidFormatException ex = new InvalidFormatException("wrapped", cause);
-        assertEquals("wrapped", ex.getMessage());
-        assertSame(cause, ex.getCause());
-    }
-
-
-    @Test
-    void invalidFormatException_causeOnlyConstructor()
-    {
-        Throwable cause = new IllegalStateException("root");
-        InvalidFormatException ex = new InvalidFormatException(cause);
-        assertSame(cause, ex.getCause());
-        // The cause's toString shows up in the message produced by the
-        // RuntimeException(Throwable) chain — verify it is not null and not empty.
-        assertNotNull(ex.getMessage());
-        assertNotSame("", ex.getMessage());
-    }
-
-
-    @Test
-    void invalidFormatException_extendsIllegalArgumentException()
-    {
-        // Make sure the exception hierarchy stays stable — many call sites rely on the standard
-        // runtime exception type when handling invalid format strings.
-        InvalidFormatException ex = new InvalidFormatException("x");
-        IllegalArgumentException iae = ex;
-        assertSame(ex, iae);
-
-        // Throwing it must be catchable as IllegalArgumentException.
-        IllegalArgumentException caught = assertThrows(IllegalArgumentException.class, () ->
-        {
-            throw new InvalidFormatException("boom");
-        });
-        assertEquals("boom", caught.getMessage());
     }
 }

@@ -8,7 +8,6 @@
 net/cumba/sasutils/Dataset.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/EncodingTableMap.java	PARTIAL	copied from EPAM's parso
 net/cumba/sasutils/Informat.java	DERIVED	Derived from theshoeshiner/sas-utils
-net/cumba/sasutils/InvalidFormatException.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/Justify.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/Library.java	DERIVED	Derived from theshoeshiner/sas-utils
 net/cumba/sasutils/Observation.java	DERIVED	Derived from theshoeshiner/sas-utils
