@@ -40,8 +40,6 @@
         <!-- Repo-root anchor, depth 2 (see the root pom). -->
         <repo.root.dir>${project.basedir}/../..</repo.root.dir>
 
-        <mockito.agent>-javaagent:${org.mockito:mockito-core:jar}</mockito.agent>
-
         <!--
             Quality floors for this module, set to (measured - 2) and NEVER lowered.
 
@@ -95,16 +93,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
