@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 
@@ -153,6 +154,43 @@ public class DataTypeMapperFactory
         return NO_MAPPER;
     }
 
+
+    /**
+     * PACK I S10: the whole seconds of a value and the nanoseconds of its fraction, the fraction
+     * rounded to the microsecond (SAS's own datetime precision, {@code DATETIME26.6}); a fraction
+     * that rounds up to a whole second carries into it. Dataset-JSON's timing values are ISO 8601
+     * strings, which carry a fraction — the mappers used to round to the second on the way out and
+     * to drop the fraction on the way in.
+     */
+    private static long[] wholeSecondsAndNanos(double aSeconds)
+    {
+        long whole = (long) Math.floor(aSeconds);
+        long micros = Math.round((aSeconds - whole) * 1_000_000d);
+        if (micros >= 1_000_000L)
+        {
+            whole++;
+            micros -= 1_000_000L;
+        }
+        return new long[]
+        {
+                whole, micros * 1000L
+        };
+    }
+
+
+    /**
+     * Seconds with a nanosecond fraction as the read side answers them: a {@link Long} when the
+     * fraction is zero (as before S10), else a {@link Double}.
+     */
+    private static Object withFraction(long aSeconds, int aNanos)
+    {
+        if (aNanos == 0)
+        {
+            return aSeconds;
+        }
+        return aSeconds + aNanos / 1e9;
+    }
+
     /**
      * A default implementation that does not perform any mapping and simply returns the given
      * value.
@@ -178,9 +216,6 @@ public class DataTypeMapperFactory
         private static final long SAS_EPOCH_SECONDS = LocalDateTime.of(1960, 1, 1, 0, 0, 0)
                 .toEpochSecond(STORAGE_ZONE);
 
-        private static final DateTimeFormatter ISO_LDT = DateTimeFormatter
-                .ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
         @Override
         public @Nullable Object mapValueToTargetType(@Nullable Object aValue)
         {
@@ -203,7 +238,9 @@ public class DataTypeMapperFactory
                         ? odt.withOffsetSameInstant(STORAGE_ZONE).toLocalDateTime()
                         : LocalDateTime.from(parsed);
                 long epochSeconds = localDateTime.toEpochSecond(STORAGE_ZONE);
-                return epochSeconds - SAS_EPOCH_SECONDS;
+                // S10: the fraction of a second rides along (a Double), a whole second stays a Long
+                return withFraction(epochSeconds - SAS_EPOCH_SECONDS,
+                        localDateTime.get(ChronoField.NANO_OF_SECOND));
             }
             catch (Exception _)
             {
@@ -230,10 +267,11 @@ public class DataTypeMapperFactory
             }
             try
             {
-                long sasSeconds = Math.round(dn);
-                LocalDateTime ldt = LocalDateTime.ofEpochSecond(sasSeconds + SAS_EPOCH_SECONDS, 0,
-                        STORAGE_ZONE);
-                return ldt.format(ISO_LDT);
+                long[] wn = wholeSecondsAndNanos(dn);
+                LocalDateTime ldt = LocalDateTime.ofEpochSecond(wn[0] + SAS_EPOCH_SECONDS,
+                        (int) wn[1], STORAGE_ZONE);
+                // ISO_LOCAL_DATE_TIME always prints the seconds and only the fraction digits needed
+                return ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             }
             catch (Exception _)
             {
@@ -319,8 +357,6 @@ public class DataTypeMapperFactory
 
         private static final long SECONDS_PER_DAY = 24L * 60L * 60L;
 
-        private static final DateTimeFormatter ISO_HMS = DateTimeFormatter.ofPattern("HH:mm:ss");
-
         @Override
         public @Nullable Object mapValueToTargetType(@Nullable Object aValue)
         {
@@ -331,8 +367,8 @@ public class DataTypeMapperFactory
             try
             {
                 // LocalTime.parse (ISO_LOCAL_TIME) accepts HH:mm, HH:mm:ss and fractional seconds
-                // (HH:mm:ss.SSS); toSecondOfDay() drops any sub-second part, matching the
-                // whole-second representation produced by mapValueFromTargetType. The old
+                // (HH:mm:ss.SSS); the fraction is kept (PACK I S10 — it was dropped while
+                // mapValueFromTargetType could only write whole seconds). The old
                 // split(":")+parseInt path threw NumberFormatException on fractional seconds and
                 // silently returned null (data loss).
                 //
@@ -350,7 +386,8 @@ public class DataTypeMapperFactory
                 LocalTime localTime = parsed instanceof OffsetTime ot
                         ? ot.withOffsetSameInstant(STORAGE_ZONE).toLocalTime()
                         : LocalTime.from(parsed);
-                return (long) localTime.toSecondOfDay();
+                return withFraction(localTime.toSecondOfDay(),
+                        localTime.get(ChronoField.NANO_OF_SECOND));
             }
             catch (DateTimeException _)
             {
@@ -377,10 +414,11 @@ public class DataTypeMapperFactory
             }
             try
             {
-                long sasSeconds = Math.round(dn);
+                long[] wn = wholeSecondsAndNanos(dn);
                 // Wrap into a single day so that out-of-range values still produce a valid HH:mm:ss
-                long sod = ((sasSeconds % SECONDS_PER_DAY) + SECONDS_PER_DAY) % SECONDS_PER_DAY;
-                return LocalTime.ofSecondOfDay(sod).format(ISO_HMS);
+                long sod = ((wn[0] % SECONDS_PER_DAY) + SECONDS_PER_DAY) % SECONDS_PER_DAY;
+                return LocalTime.ofSecondOfDay(sod).withNano((int) wn[1])
+                        .format(DateTimeFormatter.ISO_LOCAL_TIME);
             }
             catch (Exception _)
             {
@@ -440,9 +478,6 @@ public class DataTypeMapperFactory
     private static class UnixDateTimeMapper implements IDataTypeMapper
     {
 
-        private static final DateTimeFormatter ISO_LDT = DateTimeFormatter
-                .ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
         @Override
         public @Nullable Object mapValueToTargetType(@Nullable Object aValue)
         {
@@ -464,8 +499,9 @@ public class DataTypeMapperFactory
             }
             try
             {
-                long unixSeconds = Math.round(dn);
-                return LocalDateTime.ofEpochSecond(unixSeconds, 0, STORAGE_ZONE).format(ISO_LDT);
+                long[] wn = wholeSecondsAndNanos(dn);
+                return LocalDateTime.ofEpochSecond(wn[0], (int) wn[1], STORAGE_ZONE)
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             }
             catch (Exception _)
             {

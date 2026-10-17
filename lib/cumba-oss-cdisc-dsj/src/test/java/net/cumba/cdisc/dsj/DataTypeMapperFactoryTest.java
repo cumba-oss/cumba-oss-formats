@@ -145,8 +145,78 @@ class DataTypeMapperFactoryTest
     {
         IDataTypeMapper mapper = factory.getMapper(ColumnDataType.TIME,
                 ColumnTargetDataType.INTEGER);
-        // 12:34:56.789 -> 12*3600 + 34*60 + 56 = 45296 (sub-second part dropped, not a null).
-        assertEquals(45296L, mapper.mapValueToTargetType("12:34:56.789"));
+        // 12:34:56.789 -> 12*3600 + 34*60 + 56.789 (PACK I S10: the fraction is kept; it was
+        // dropped while the writer could not emit one)
+        assertEquals(45296.789,
+                ((Number) mapper.mapValueToTargetType("12:34:56.789")).doubleValue(), 1e-9);
+    }
+
+    // --- PACK I S10: fractional seconds survive both directions ---
+
+
+    @Test
+    void dateTimeMapperReadsAFractionAsADoubleAndAWholeSecondAsALong()
+    {
+        IDataTypeMapper m = factory.getMapper(ColumnDataType.DATETIME,
+                ColumnTargetDataType.INTEGER);
+        assertEquals(0L, m.mapValueToTargetType("1960-01-01T00:00:00"));
+        assertEquals(0.25, m.mapValueToTargetType("1960-01-01T00:00:00.25"));
+        assertEquals(86400.5, m.mapValueToTargetType("1960-01-02T00:00:00.500"));
+        // an offset still normalises to the storage zone, the fraction rides along
+        assertEquals(0.75, m.mapValueToTargetType("1960-01-01T01:00:00.75+01:00"));
+    }
+
+
+    @Test
+    void dateTimeMapperWritesTheFractionWithOnlyTheDigitsItNeeds()
+    {
+        IDataTypeMapper m = factory.getMapper(ColumnDataType.DATETIME,
+                ColumnTargetDataType.INTEGER);
+        assertEquals("1960-01-01T00:00:00.25", m.mapValueFromTargetType(0.25));
+        assertEquals("1960-01-01T00:00:00.1", m.mapValueFromTargetType(0.1));
+        assertEquals("1960-01-01T00:00:00.000001", m.mapValueFromTargetType(0.000001));
+        // rounded to the microsecond (SAS's own datetime precision, DATETIME26.6): a fraction
+        // below half a microsecond is a whole second, one that rounds up to a second carries
+        assertEquals("1960-01-01T00:00:00", m.mapValueFromTargetType(0.0000001));
+        assertEquals("1960-01-01T00:00:01", m.mapValueFromTargetType(0.9999999));
+        // a whole second is written as before
+        assertEquals("1960-01-01T00:00:00", m.mapValueFromTargetType(0.0));
+        assertEquals("1960-01-01T00:00:00", m.mapValueFromTargetType(0L));
+        // before the epoch the fraction still runs forward within its second
+        assertEquals("1959-12-31T23:59:59.5", m.mapValueFromTargetType(-0.5));
+    }
+
+
+    @Test
+    void dateTimeMapperRoundTripsAFraction()
+    {
+        IDataTypeMapper m = factory.getMapper(ColumnDataType.DATETIME,
+                ColumnTargetDataType.INTEGER);
+        double sas = 1_893_492_000.25; // 2020-01-01T10:00:00.25
+        Object text = m.mapValueFromTargetType(sas);
+        assertEquals("2020-01-01T10:00:00.25", text);
+        assertEquals(sas, ((Number) m.mapValueToTargetType(text)).doubleValue(), 1e-6);
+    }
+
+
+    @Test
+    void timeMapperKeepsTheFractionBothWays()
+    {
+        IDataTypeMapper m = factory.getMapper(ColumnDataType.TIME, ColumnTargetDataType.INTEGER);
+        assertEquals("01:02:03.5", m.mapValueFromTargetType(3723.5));
+        assertEquals("01:02:03", m.mapValueFromTargetType(3723.0));
+        assertEquals("23:59:59.999999", m.mapValueFromTargetType(86399.999999));
+        assertEquals(3723.5, ((Number) m.mapValueToTargetType("01:02:03.5")).doubleValue(), 1e-9);
+        assertEquals(3723L, m.mapValueToTargetType("01:02:03"));
+    }
+
+
+    @Test
+    void unixDateTimeMapperWritesTheFraction()
+    {
+        IDataTypeMapper m = factory.getUnixEpochMapper(ColumnDataType.DATETIME);
+        assertEquals("1970-01-01T00:00:00.25", m.mapValueFromTargetType(0.25));
+        assertEquals("1970-01-01T00:00:00", m.mapValueFromTargetType(0.0));
     }
 
 
